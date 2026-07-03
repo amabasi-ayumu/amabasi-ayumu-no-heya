@@ -1,0 +1,258 @@
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Web開発 基本構造まとめ</title>
+</head>
+<body>
+
+<h1>Web開発 基本構造まとめ</h1>
+
+<hr>
+
+<h2>1. Webシステム全体の構造</h2>
+
+<pre>
+ブラウザ
+    │
+    ▼
+index.html
+    │
+    ├── style.css（見た目）
+    │
+    ├── app.js（動作）
+    │
+    └── config.json（設定）
+              │
+              ▼
+            GAS
+              │
+              ▼
+      Googleスプレッドシート
+</pre>
+
+<p>
+HTMLが中心となり、CSS・JavaScriptを読み込みます。
+JavaScriptはJSONやGASと通信します。
+GASがスプレッドシートを操作します。
+</p>
+
+<hr>
+
+<h2>2. CSSとは</h2>
+
+<p>
+CSSは画面の見た目を設定するためのファイルです。
+</p>
+
+<p>
+拡張子
+</p>
+
+<pre>
+.css
+</pre>
+
+<p>例</p>
+
+<pre>
+style.css
+button.css
+layout.css
+</pre>
+
+読み込み
+
+<pre>
+&lt;link rel="stylesheet" href="css/style.css"&gt;
+</pre>
+
+<hr>
+
+<h2>3. JavaScriptとは</h2>
+
+<p>
+JavaScriptは画面の動作を担当します。
+</p>
+
+読み込み
+
+<pre>
+&lt;script src="js/app.js"&gt;&lt;/script&gt;
+</pre>
+
+<hr>
+
+<h2>4. JSONとは</h2>
+
+<p>
+JSONは設定データを保存するためのファイルです。
+</p>
+
+拡張子
+
+<pre>
+.json
+</pre>
+
+JavaScriptから読み込みます。
+
+<pre>
+fetch("data/config.json")
+    .then(response => response.json())
+    .then(data => {
+
+        console.log(data);
+
+    });
+</pre>
+
+<hr>
+
+<h2>5. GASとは</h2>
+
+<p>
+Google Apps Script
+Googleサービスを操作するサーバー側プログラム
+</p>
+
+JavaScriptから通信します。
+
+<pre>
+fetch("https://script.google.com/macros/s/xxxxxxxx/exec")
+</pre>
+
+<hr>
+
+<h2>6. スプレッドシート</h2>
+
+<p>
+GASから操作します。
+</p>
+
+<pre>
+const sheet =
+SpreadsheetApp
+.getActiveSpreadsheet()
+.getSheetByName("Data");
+</pre>
+
+<hr>
+
+<h2>7. 呼び出し関係</h2>
+
+<pre>
+HTML
+│
+├── CSS
+│
+├── JavaScript
+│      │
+│      ├── JSON
+│      │
+│      └── GAS
+│              │
+│              ▼
+│      Spreadsheet
+</pre>
+
+<hr>
+
+<h2>8. 各ファイルの役割</h2>
+
+<table border="1" cellpadding="8">
+
+<tr>
+<th>ファイル</th>
+<th>役割</th>
+</tr>
+
+<tr>
+<td>index.html</td>
+<td>画面の土台</td>
+</tr>
+
+<tr>
+<td>style.css</td>
+<td>見た目</td>
+</tr>
+
+<tr>
+<td>app.js</td>
+<td>動作</td>
+</tr>
+
+<tr>
+<td>config.json</td>
+<td>設定データ</td>
+</tr>
+
+<tr>
+<td>GAS</td>
+<td>サーバー処理</td>
+</tr>
+
+<tr>
+<td>Googleスプレッドシート</td>
+<td>データ保存</td>
+</tr>
+
+</table>
+
+<hr>
+
+<h2>9. 推奨フォルダ構成</h2>
+
+<pre>
+Project
+│
+├── index.html
+│
+├── css
+│   ├── base.css
+│   ├── layout.css
+│   ├── button.css
+│   └── animation.css
+│
+├── js
+│   ├── main.js
+│   ├── ui.js
+│   ├── json.js
+│   ├── gas.js
+│   └── event.js
+│
+├── data
+│   └── config.json
+│
+└── img
+</pre>
+
+<hr>
+
+<h2>10. 基本設計思想</h2>
+
+<ul>
+
+<li>HTML：画面の構造</li>
+
+<li>CSS：見た目</li>
+
+<li>JavaScript：処理・動作</li>
+
+<li>JSON：設定・データ</li>
+
+<li>GAS：Googleサービスとの通信</li>
+
+<li>Spreadsheet：データ保存</li>
+
+</ul>
+
+<p>
+それぞれの役割を分離することで、
+保守性・拡張性・再利用性が高いシステムになります。
+</p>
+
+</body>
+</html>
+```
