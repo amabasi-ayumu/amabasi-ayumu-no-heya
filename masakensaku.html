@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>まさ検索</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; background-color: #000000;
+            padding-right: 120px; 
+            padding-top: 60px;
+            box-sizing: border-box;
+        }
+
+        /* ===== トップのお気に入りバー ===== */
+        .favorites-bar {
+            position: fixed; top: 0; left: 0; right: 0; min-height: 45px;
+            background-color: #f8f9fa; border-bottom: 1px solid #dfe1e5;
+            display: flex; align-items: center; padding: 5px 15px;
+            z-index: 100; flex-wrap: wrap; gap: 10px;
+        }
+
+        /* --- 新規：Googleアプリアイコン（9つのドット） --- */
+        .app-launcher-container {
+            margin-right: 15px;
+        }
+
+        /* 9つのドットを作るCSS */
+        .nine-dots {
+            display: grid;
+            grid-template-columns: repeat(3, 4px);
+            grid-template-rows: repeat(3, 4px);
+            gap: 2px;
+            width: 16px; height: 16px;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .nine-dots:hover { background-color: #e8eaed; }
+        .nine-dots span {
+            width: 4px; height: 4px;
+            background-color: #5f6368;
+            border-radius: 50%;
+            pointer-events: none; /* クリック判定を邪魔しないようにする */
+        }
+
+        /* アプリ一覧の吹き出しメニュー */
+        .app-launcher-menu {
+            display: none; /* 初期状態は隠す */
+            position: fixed;
+            top: 50px;
+            left: 10px;
+            width: 280px;
+            background-color: #000000;
+            border: 1px solid #dfe1e5;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            padding: 15px;
+            z-index: 200;
+        }
+        
+        /* 吹き出しのしっぽ（上部の三角） */
+        .app-launcher-menu::before {
+            content: ''; position: absolute;
+            top: -10px; left: 18px;
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-bottom: 10px solid #dfe1e5;
+        }
+        .app-launcher-menu::after {
+            content: ''; position: absolute;
+            top: -9px; left: 19px;
+            border-left: 9px solid transparent; border-right: 9px solid transparent;
+            border-bottom: 9px solid #ffffff;
+        }
+
+        /* アプリを3列に並べるグリッド */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px 5px;
+        }
+        
+        /* 各アプリアイコン */
+        .app-item {
+            display: flex; flex-direction: column; align-items: center;
+            text-decoration: none; color: #3c4043; font-size: 13px;
+            padding: 10px 5px; border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .app-item:hover { background-color: #f1f3f4; }
+        .app-item img {
+            width: 36px; height: 36px;
+            margin-bottom: 8px; border-radius: 8px;
+        }
+
+        /* --- お気に入りアイテム --- */
+        .favorites-list { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .favorite-item {
+            display: inline-flex; align-items: center; text-decoration: none;
+            color: #3c4043; font-size: 13px; padding: 6px 12px;
+            border-radius: 16px; background-color: #ffffff;
+            border: 1px solid #dadce0; transition: background-color 0.2s; flex-shrink: 0; cursor: pointer;
+        }
+        .favorite-item:hover { background-color: #f1f3f4; }
+        .favorite-item img { width: 16px; height: 16px; margin-right: 6px; border-radius: 50%; }
+
+        /* プルダウン用のスタイル */
+        .dropdown { position: relative; display: inline-block; flex-shrink: 0; }
+        .dropdown-content {
+            display: none; position: absolute; top: 100%; left: 0; background-color: #ffffff;
+            min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px; padding: 8px 0; z-index: 101; flex-direction: column; margin-top: 5px;
+        }
+        .dropdown:hover .dropdown-content { display: flex; }
+        .dropdown-item {
+            display: flex; align-items: center; padding: 8px 16px; text-decoration: none;
+            color: #3c4043; font-size: 13px;
+        }
+        .dropdown-item:hover { background-color: #f1f3f4; }
+        .dropdown-item img { width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; }
+
+        /* --- ボタン類 --- */
+        .action-btn {
+            background: transparent; border: none; color: #1a73e8; font-size: 13px;
+            font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 16px; flex-shrink: 0; margin-right: 5px;
+        }
+        .action-btn:hover { background-color: rgba(26,115,232,0.1); }
+
+        /* --- 検索部分・サイドバー --- */
+        .container { text-align: center; width: 100%; max-width: 600px; margin-top: -10vh; }
+        .logo { font-size: 80px; margin-bottom: 25px; letter-spacing: -2px; color: #4285f4; }
+        .logo .red { color: #ea4335; } .logo .yellow { color: #fbbc05; } .logo .green { color: #34a853; }
+        .search-box {
+            display: flex; align-items: center; border: 1px solid #dfe1e5;
+            border-radius: 24px; padding: 10px 20px; margin: 0 auto 30px auto;
+            width: 80%; max-width: 580px; transition: box-shadow 0.2s; background-color: white;
+        }
+        .search-box:hover, .search-box:focus-within { box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28); border-color: rgba(223, 225, 229, 0); }
+        .search-icon { color: #9aa0a6; margin-right: 10px; font-size: 18px; }
+        .search-input { border: none; outline: none; width: 100%; font-size: 16px; }
+        .buttons button {
+            background-color: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px;
+            color: #3c4043; font-size: 14px; margin: 0 5px; padding: 10px 20px; cursor: pointer;
+        }
+        .buttons button:hover { background-color: #f1f3f4; border: 1px solid #dadce0; color: #202124; }
+
+        .sidebar {
+            position: fixed; top: 45px; right: 0; min-width: 110px; max-width: 50vw;
+            height: calc(100vh - 45px); background-color: #fafafa;
+            border-left: 1px solid #dfe1e5; box-shadow: -2px 0 5px rgba(0,0,0,0.03);
+            padding: 20px 15px; box-sizing: border-box; overflow-x: auto; overflow-y: hidden; z-index: 50;
+        }
+        .shortcuts-container {
+            display: grid; grid-template-rows: repeat(5, auto); grid-auto-columns: 80px;
+            grid-auto-flow: column; gap: 15px; justify-content: start;
+        }
+        .shortcut {
+            display: flex; flex-direction: column; align-items: center; text-decoration: none;
+            color: #3c4043; width: 80px; padding: 10px 0; border-radius: 8px; cursor: pointer; border: none; background: transparent;
+        }
+        .shortcut:hover { background-color: #e8eaed; }
+        .shortcut-icon {
+            width: 48px; height: 48px; background-color: #ffffff; border: 1px solid #dfe1e5;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            margin-bottom: 8px; font-size: 20px; color: #5f6368;
+        }
+        .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; }
+        .shortcut span {
+            font-size: 12px; width: 100%; text-align: center; line-height: 1.4;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; height: calc(12px * 1.4 * 2);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="favorites-bar">
+        
+        <!-- ▼ 新規：Googleアプリランチャー -->
+        <div class="app-launcher-container">
+            <!-- 9つのドットアイコン -->
+            <div class="nine-dots" id="app-launcher-btn" onclick="toggleAppMenu(event)">
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+                <span></span><span></span><span></span>
+            </div>
+            
+            <!-- 吹き出しメニュー本体 -->
+            <div class="app-launcher-menu" id="app-launcher-menu">
+                <div class="app-grid">
+                    <a href="https://www.google.co.jp/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="検索">
+                        <span>検索</span>
+                    </a>
+                    <a href="https://maps.google.co.jp/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=maps.google.com&sz=64" alt="マップ">
+                        <span>マップ</span>
+                    </a>
+                    <a href="https://www.youtube.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube">
+                        <span>YouTube</span>
+                    </a>
+                    <a href="https://mail.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=mail.google.com&sz=64" alt="Gmail">
+                        <span>Gmail</span>
+                    </a>
+                    <a href="https://drive.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=drive.google.com&sz=64" alt="ドライブ">
+                        <span>ドライブ</span>
+                    </a>
+                    <a href="https://calendar.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=calendar.google.com&sz=64" alt="カレンダー">
+                        <span>カレンダー</span>
+                    </a>
+                    <a href="https://translate.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=translate.google.com&sz=64" alt="翻訳">
+                        <span>翻訳</span>
+                    </a>
+                    <a href="https://photos.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=photos.google.com&sz=64" alt="フォト">
+                        <span>フォト</span>
+                    </a>
+                    <a href="https://news.google.com/" class="app-item">
+                        <img src="https://www.google.com/s2/favicons?domain=news.google.com&sz=64" alt="ニュース">
+                        <span>ニュース</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="folder-input" webkitdirectory directory style="display: none;">
+        <button class="action-btn" onclick="document.getElementById('folder-input').click()">📁 フォルダ同期</button>
+        <button class="action-btn" onclick="clearFavorites()" style="color: #ea4335;">🗑 リセット</button>
+        
+        <div class="favorites-list" id="favorites-list"></div>
+    </header>
+
+    <main class="container">
+        <h1 class="logo">
+            <span class="red">まさ検索        </h1>
+        <form action="https://www.google.com/search" method="GET">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="q" class="search-input" placeholder="Google で検索" required autocomplete="off" autofocus>
+            </div>
+            <div class="buttons">
+                <button type="submit">Google 検索</button>
+            </div>
+        </form>
+    </main>
+
+    <aside class="sidebar">
+        <div class="shortcuts-container" id="shortcut-list"></div>
+    </aside>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFavorites();
+            renderShortcuts();
+        });
+
+        // ==========================================
+        // Googleアプリランチャー（吹き出し）の処理
+        // ==========================================
+        function toggleAppMenu(event) {
+            const menu = document.getElementById('app-launcher-menu');
+            // 表示と非表示を切り替える
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            event.stopPropagation(); // 他のクリック判定が動かないようにする
+        }
+
+        // 画面のどこか関係ない場所をクリックしたら吹き出しを閉じる
+        document.addEventListener('click', (event) => {
+            const menu = document.getElementById('app-launcher-menu');
+            const btn = document.getElementById('app-launcher-btn');
+            if (menu.style.display === 'block' && !menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+
+        // ==========================================
+        // フォルダ階層・お気に入りの処理
+        // ==========================================
+        document.getElementById('folder-input').addEventListener('change', async function(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            let rootItems = [];     
+            let folderItems = {};   
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const text = await file.text();
+                let url = '';
+
+                const urlMatchWin = text.match(/URL=(.+)/i);
+                if (urlMatchWin) {
+                    url = urlMatchWin[1].trim();
+                } else {
+                    const urlMatchMac = text.match(/<string>(https?:\/\/[^<]+)<\/string>/i);
+                    if (urlMatchMac) {
+                        url = urlMatchMac[1].trim();
+                    }
+                }
+
+                if (url) {
+                    const cleanName = file.name.replace(/\.(url|webloc)$/i, '');
+                    const parts = file.webkitRelativePath.split('/');
+                    
+                    if (parts.length === 2) {
+                        rootItems.push({ name: cleanName, url: url });
+                    } else if (parts.length >= 3) {
+                        const subFolderName = parts[1];
+                        if (!folderItems[subFolderName]) folderItems[subFolderName] = [];
+                        folderItems[subFolderName].push({ name: cleanName, url: url });
+                    }
+                }
+            }
+
+            const treeData = { root: rootItems, folders: folderItems };
+            if (rootItems.length > 0 || Object.keys(folderItems).length > 0) {
+                localStorage.setItem('myFolderFavoritesTree', JSON.stringify(treeData));
+                renderFavorites();
+                alert("フォルダ階層を読み込みました！");
+            } else {
+                alert("フォルダ内にショートカットファイルが見つかりませんでした。");
+            }
+            e.target.value = '';
+        });
+
+        function renderFavorites() {
+            const container = document.getElementById('favorites-list');
+            container.innerHTML = ''; 
+            
+            const dataStr = localStorage.getItem('myFolderFavoritesTree');
+            if (!dataStr) return;
+            const data = JSON.parse(dataStr);
+
+            if (data.folders) {
+                for (const folderName in data.folders) {
+                    const items = data.folders[folderName];
+                    const dropdown = document.createElement('div');
+                    dropdown.className = 'dropdown';
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'favorite-item';
+                    btn.innerHTML = `📁 ${folderName} ▾`;
+                    dropdown.appendChild(btn);
+
+                    const content = document.createElement('div');
+                    content.className = 'dropdown-content';
+                    
+                    items.forEach(fav => {
+                        const a = document.createElement('a');
+                        a.className = 'dropdown-item';
+                        a.href = fav.url;
+                        const iconUrl = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
+                        a.innerHTML = `<img src="${iconUrl}" alt="${fav.name}"> ${fav.name}`;
+                        content.appendChild(a);
+                    });
+                    dropdown.appendChild(content);
+                    container.appendChild(dropdown);
+                }
+            }
+
+            if (data.root) {
+                data.root.forEach((fav) => {
+                    const a = document.createElement('a');
+                    a.className = 'favorite-item';
+                    a.href = fav.url;
+                    const iconUrl = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`; 
+                    a.innerHTML = `<img src="${iconUrl}" alt="${fav.name}"> ${fav.name}`;
+                    container.appendChild(a);
+                });
+            }
+        }
+
+        function clearFavorites() {
+            if(confirm("読み込んだお気に入りをすべて消去しますか？\n（PC内のファイルは削除されません）")) {
+                localStorage.removeItem('myFolderFavoritesTree');
+                renderFavorites();
+            }
+        }
+
+        // ==========================================
+        // サイドバー（ショートカット）の処理
+        // ==========================================
+        function renderShortcuts() {
+            const container = document.getElementById('shortcut-list');
+            container.innerHTML = ''; 
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+
+            shortcuts.forEach((sc) => {
+                const a = document.createElement('a');
+                a.className = 'shortcut';
+                a.href = sc.url;
+                const iconUrl = `https://www.google.com/s2/favicons?domain=${sc.url}&sz=64`;
+                a.innerHTML = `<div class="shortcut-icon"><img src="${iconUrl}" alt="${sc.name}"></div><span>${sc.name}</span>`;
+                container.appendChild(a);
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'shortcut';
+            addBtn.onclick = addShortcut;
+            addBtn.innerHTML = `<div class="shortcut-icon">＋</div><span>追加</span>`;
+            container.appendChild(addBtn);
+        }
+
+        function addShortcut() {
+            const name = prompt("ショートカットの名前を入力:\n（例: YouTube）");
+            if (!name) return;
+            let url = prompt("URLを入力:\n（例: https://www.youtube.com）");
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+            shortcuts.push({ name: name, url: url });
+            localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+            renderShortcuts();
+        }
+    </script>
+</body>
+</html>
