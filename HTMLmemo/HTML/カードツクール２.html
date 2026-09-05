@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複数並べて印刷ツール（個別画像設定対応）</title>
+    <style>
+        /* --- 画面表示用のスタイル --- */
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #d1d5db;
+        }
+        
+        .controls {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .controls label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .controls input, .controls select {
+            padding: 8px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .controls input[type="number"] {
+            width: 70px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .info-text {
+            width: 100%;
+            font-size: 14px;
+            color: #0056b3;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* --- プレビュー（用紙）領域のスタイル --- */
+        #print-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .page {
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            overflow: hidden;
+        }
+
+        .print-item {
+            box-sizing: border-box;
+            border: 1px dashed #999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer; /* クリックできることを示す */
+            transition: opacity 0.2s, border-color 0.2s;
+            text-align: center;
+            white-space: pre-line;
+            background-color: #f9f9f9;
+        }
+
+        .print-item:hover {
+            opacity: 0.7;
+            border-color: #007BFF;
+            border-style: solid;
+        }
+
+        /* --- 印刷時専用のスタイル --- */
+        @media print {
+            body {
+                background-color: transparent;
+                padding: 0;
+            }
+            .controls, .info-text {
+                display: none !important;
+            }
+            #print-area {
+                gap: 0;
+                display: block;
+            }
+            .page {
+                box-shadow: none;
+                margin: 0;
+                page-break-after: always;
+            }
+            .page:last-child {
+                page-break-after: auto;
+            }
+            .print-item {
+                border: 1px solid #000;
+                background-color: transparent; /* 印刷時は背景色をなくす */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 設定パネル -->
+    <div class="controls">
+        <div class="info-text">💡 下のプレビュー画面の「枠」をクリックすると、カードごとに個別の画像を設定できます。</div>
+        <div class="control-group">
+            <label>一括で画像を設定（リセット）</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div class="control-group">
+            <label>用紙サイズ</label>
+            <select id="paperSize">
+                <option value="210,297">A4 (210×297)</option>
+                <option value="297,420">A3 (297×420)</option>
+                <option value="182,257">B5 (182×257)</option>
+                <option value="257,364">B4 (257×364)</option>
+                <option value="100,148">はがき (100×148)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>向き</label>
+            <select id="orientation">
+                <option value="portrait">縦</option>
+                <option value="landscape">横</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>余白(mm)</label>
+            <input type="number" id="pageMargin" value="10" min="0">
+        </div>
+        <div class="control-group">
+            <label>画像の幅(mm)</label>
+            <input type="number" id="itemWidth" value="50" min="5">
+        </div>
+        <div class="control-group">
+            <label>画像の高さ(mm)</label>
+            <input type="number" id="itemHeight" value="50" min="5">
+        </div>
+        <div class="control-group">
+            <label>間隔(mm)</label>
+            <input type="number" id="itemGap" value="5" min="0">
+        </div>
+        <div class="control-group">
+            <label>印刷個数</label>
+            <input type="number" id="itemCount" value="12" min="1">
+        </div>
+        <button onclick="window.print()">印刷する</button>
+    </div>
+
+    <!-- プレビュー兼印刷領域 -->
+    <div id="print-area"></div>
+
+    <script>
+        // HTML要素の取得
+        const inputs = [
+            document.getElementById('paperSize'),
+            document.getElementById('orientation'),
+            document.getElementById('pageMargin'),
+            document.getElementById('itemWidth'),
+            document.getElementById('itemHeight'),
+            document.getElementById('itemGap'),
+            document.getElementById('itemCount')
+        ];
+        const imageInput = document.getElementById('imageInput');
+        const printArea = document.getElementById('print-area');
+        
+        let defaultImageUrl = ''; // 一括設定用の画像
+        let cardImages = [];      // 個別に設定した画像を保存する配列
+        let currentEditIndex = -1; // 現在個別編集しようとしているカードの番号
+
+        // --- 個別設定用の見えないファイル入力を用意 ---
+        const singleImageInput = document.createElement('input');
+        singleImageInput.type = 'file';
+        singleImageInput.accept = 'image/*';
+        
+        singleImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file || currentEditIndex === -1) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // 選んだ画像を該当する番号の配列に保存
+                cardImages[currentEditIndex] = event.target.result;
+                generatePreview(); // プレビューを再描画
+            };
+            reader.readAsDataURL(file);
+            
+            // 同じ画像を連続で選べるようにリセット
+            e.target.value = '';
+        });
+
+        // --- 一括画像の処理 ---
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                defaultImageUrl = event.target.result;
+                cardImages = []; // 一括設定した場合は、個別の設定をすべてクリアする
+                generatePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // いずれかの設定が変更されたらプレビューを再生成
+        inputs.forEach(input => {
+            input.addEventListener('input', generatePreview);
+        });
+
+        // プレビューとページ分割を生成する関数
+        function generatePreview() {
+            printArea.innerHTML = ''; // 一度クリア
+            
+            const [paperW, paperH] = document.getElementById('paperSize').value.split(',').map(Number);
+            const isLandscape = document.getElementById('orientation').value === 'landscape';
+            const actualPaperWidth = isLandscape ? paperH : paperW;
+            const actualPaperHeight = isLandscape ? paperW : paperH;
+            
+            const margin = parseFloat(document.getElementById('pageMargin').value);
+            const width = parseFloat(document.getElementById('itemWidth').value);
+            const height = parseFloat(document.getElementById('itemHeight').value);
+            const gap = parseFloat(document.getElementById('itemGap').value);
+            const count = parseInt(document.getElementById('itemCount').value);
+
+            // 印刷ダイアログ用のCSSを動的に生成
+            let styleTag = document.getElementById('dynamic-print-style');
+            if (!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'dynamic-print-style';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.innerHTML = `@page { size: ${actualPaperWidth}mm ${actualPaperHeight}mm; margin: 0 !important; }`;
+
+            const usableWidth = actualPaperWidth - (margin * 2);
+            const usableHeight = actualPaperHeight - (margin * 2);
+            
+            let cols = Math.floor((usableWidth + gap) / (width + gap));
+            let rows = Math.floor((usableHeight + gap) / (height + gap));
+            if (cols < 1) cols = 1;
+            if (rows < 1) rows = 1;
+
+            const itemsPerPage = cols * rows;
+            const totalPages = Math.ceil(count / itemsPerPage);
+            
+            let globalIndex = 0; // 全カードの通し番号
+
+            for (let p = 0; p < totalPages; p++) {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'page';
+                pageEl.style.width = `${actualPaperWidth}mm`;
+                pageEl.style.height = `${actualPaperHeight}mm`;
+                pageEl.style.padding = `${margin}mm`;
+                pageEl.style.gap = `${gap}mm`;
+                
+                for (let i = 0; i < itemsPerPage; i++) {
+                    if (globalIndex >= count) break;
+                    
+                    const item = document.createElement('div');
+                    item.className = 'print-item';
+                    item.style.width = `${width}mm`;
+                    item.style.height = `${height}mm`;
+                    
+                    // クリック時のイベント（個別画像選択を開く）
+                    const currentIndex = globalIndex;
+                    item.addEventListener('click', () => {
+                        currentEditIndex = currentIndex;
+                        singleImageInput.click();
+                    });
+
+                    // 画像の適用優先度: 個別設定(cardImages) > 一括設定(defaultImageUrl)
+                    const imgToUse = cardImages[globalIndex] || defaultImageUrl;
+                    
+                    if (imgToUse) {
+                        item.style.backgroundImage = `url(${imgToUse})`;
+                        item.innerText = ''; // テキストを消す
+                    } else {
+                        item.innerText = `クリックで画像設定\n(${width}x${height})`; 
+                    }
+                    
+                    pageEl.appendChild(item);
+                    globalIndex++;
+                }
+                printArea.appendChild(pageEl);
+            }
+        }
+
+        // 初期状態でプレビューを描画
+        generatePreview();
+    </script>
+</body>
+</html>
