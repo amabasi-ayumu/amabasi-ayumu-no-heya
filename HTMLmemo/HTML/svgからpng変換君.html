@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG to PNG 変換ツール</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 0;
+            color: #444;
+        }
+        .upload-area {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 0 auto 15px auto;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #previewContainer {
+            margin-top: 20px;
+            display: none;
+        }
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-image: repeating-linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), repeating-linear-gradient(45deg, #f0f0f0 25%, #fff 25%, #fff 75%, #f0f0f0 75%, #f0f0f0);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>SVG → PNG 変換ツール</h2>
+    
+    <div class="upload-area">
+        <input type="file" id="svgInput" accept=".svg">
+        <button onclick="convertToPng()">PNGに変換</button>
+    </div>
+
+    <div id="previewContainer">
+        <p>プレビュー:</p>
+        <img id="previewImage" alt="PNG Preview">
+        <br>
+        <a id="downloadLink" class="download-btn" href="#" download="converted.png">PNGをダウンロード</a>
+    </div>
+</div>
+
+<script>
+    function convertToPng() {
+        const fileInput = document.getElementById('svgInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('SVGファイルを選択してください。');
+            return;
+        }
+
+        const reader = new FileReader();
+
+        // ファイルの読み込みが完了したときの処理
+        reader.onload = function(e) {
+            const svgData = e.target.result;
+            const img = new Image();
+
+            // 画像の読み込みが完了したときの処理（Canvasに描画）
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                // SVGのサイズに合わせてCanvasのサイズを設定
+                canvas.width = img.width || 800; // 幅が取得できない場合のデフォルト値
+                canvas.height = img.height || 600;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                // CanvasからPNGのDataURLを取得
+                const pngDataUrl = canvas.toDataURL('image/png');
+
+                // プレビューとダウンロードリンクの更新
+                const previewContainer = document.getElementById('previewContainer');
+                const previewImage = document.getElementById('previewImage');
+                const downloadLink = document.getElementById('downloadLink');
+
+                previewImage.src = pngDataUrl;
+                
+                // 元のファイル名から.svgを.pngに置換してダウンロードファイル名に設定
+                const originalName = file.name.replace(/\.svg$/i, '');
+                downloadLink.download = originalName + '.png';
+                downloadLink.href = pngDataUrl;
+
+                previewContainer.style.display = 'block';
+            };
+
+            // SVGデータをImage要素のソースとしてセット
+            img.src = svgData;
+        };
+
+        // SVGファイルをData URLとして読み込む
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>

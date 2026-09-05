@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高機能 透過 & ICO変換ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 850px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        h2 { margin-top: 0; margin-bottom: 5px; text-align: center; }
+        .description { font-size: 13px; color: #666; text-align: center; margin-bottom: 10px; }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        /* 左側：プレビューエリア */
+        .preview-section {
+            flex: 1.2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 100%; 
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            background-image: 
+                linear-gradient(45deg, #cce5ff 25%, transparent 25%),
+                linear-gradient(-45deg, #cce5ff 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #cce5ff 75%),
+                linear-gradient(-45deg, transparent 75%, #cce5ff 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #e6f2ff;
+            overflow: hidden;
+            cursor: crosshair; /* クリック追加がメインなので十字カーソルに変更 */
+        }
+        .canvas-wrapper.dragging { cursor: grabbing; }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+        }
+        .canvas-hint {
+            font-size: 12px;
+            color: #555;
+            margin-top: 8px;
+            text-align: center;
+            background: #eef;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        /* 右側：コントロールエリア */
+        .control-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fafafa;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .setting-group {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        .setting-group:last-child { border-bottom: none; padding-bottom: 0; }
+        .setting-group label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; }
+        
+        input[type="file"], select { width: 100%; padding: 8px; box-sizing: border-box; }
+        
+        /* 色指定エリア */
+        .color-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .color-item input[type="color"] { height: 35px; padding: 0; cursor: pointer; flex-grow: 1; border: 1px solid #ccc; }
+        .color-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        
+        /* スライダー */
+        .range-container { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex-grow: 1; }
+        
+        /* ボタン */
+        button {
+            width: 100%;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .primary-btn {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            padding: 15px;
+        }
+        .primary-btn:hover:not(:disabled) { background-color: #218838; }
+        .primary-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .secondary-btn {
+            background-color: #007bff;
+            color: white;
+            margin-top: 10px;
+        }
+        .secondary-btn:hover { background-color: #0056b3; }
+
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            width: 35px;
+            padding: 8px 0;
+        }
+        .remove-btn:hover { background-color: #c82333; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>高機能 透過 & ICO変換ツール</h2>
+    <div class="description">透過したい色を無制限に追加可能。キャンバス上でクリックした色も自動追加されます。</div>
+
+    <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp">
+
+    <div class="main-content" id="workspace" style="display:none;">
+        
+        <!-- 左側：プレビュー -->
+        <div class="preview-section">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="canvas-hint">
+                <strong>🎯 消したい色をクリックすると自動でリストに追加されます</strong><br>
+                🖱 ホイール: 拡大/縮小 | 👆 Spaceキー＋ドラッグ: 移動
+            </div>
+        </div>
+
+        <!-- 右側：コントロール -->
+        <div class="control-section">
+            <div class="setting-group">
+                <label>出力最大サイズ:</label>
+                <select id="sizeSelect">
+                    <option value="256" selected>256px (最大推奨)</option>
+                    <option value="128">128px</option>
+                    <option value="64">64px</option>
+                    <option value="48">48px (Windows定番)</option>
+                    <option value="32">32px (タスクバー用)</option>
+                    <option value="16">16px (ファビコン用)</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label>透過の許容誤差 (0-100):</label>
+                <div class="range-container">
+                    <input type="range" id="tolerance" min="0" max="100" value="15">
+                    <span id="toleranceValue" style="width: 30px; text-align: right;">15</span>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label>透過させる色リスト</label>
+                <div class="color-list" id="colorList">
+                    <!-- 色入力欄がここに追加されます -->
+                </div>
+                <button id="addColorBtn" class="secondary-btn">＋ 透過色を手動で追加</button>
+            </div>
+
+            <button id="downloadBtn" class="primary-btn" disabled>.ico 形式でダウンロード</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const imageInput = document.getElementById('imageInput');
+    const workspace = document.getElementById('workspace');
+    const sizeSelect = document.getElementById('sizeSelect');
+    
+    // Canvas と ズーム/パン関連
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha: true });
+    
+    let originalImage = null;
+    let originalImageData = null;
+    let displayImageData = null;
+    
+    let scale = 1;
+    let offsetX = 0;
+    let offsetY = 0;
+    
+    // ドラッグ移動(パン)はSpaceキー押下時に制限
+    let isDragging = false;
+    let isSpaceDown = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+
+    // コントロール関連
+    const toleranceInput = document.getElementById('tolerance');
+    const toleranceValue = document.getElementById('toleranceValue');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const colorListContainer = document.getElementById('colorList');
+    const addColorBtn = document.getElementById('addColorBtn');
+
+    // カラーピッカー配列
+    let colorPickers = [];
+    let colorIdCounter = 0;
+
+    // --- 色追加関数 ---
+    function addColorInput(defaultColor = '#ffffff') {
+        const id = colorIdCounter++;
+        
+        const div = document.createElement('div');
+        div.className = 'color-item';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        checkbox.title = 'この色を有効にする';
+        
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.value = defaultColor;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '✖';
+        removeBtn.className = 'remove-btn';
+        removeBtn.title = '削除';
+        
+        div.appendChild(checkbox);
+        div.appendChild(input);
+        div.appendChild(removeBtn);
+        colorListContainer.appendChild(div);
+        
+        const colorObj = { id, checkbox, input, div };
+        colorPickers.push(colorObj);
+        
+        // イベント
+        checkbox.addEventListener('change', processTransparency);
+        input.addEventListener('input', processTransparency);
+        removeBtn.addEventListener('click', () => {
+            div.remove();
+            colorPickers = colorPickers.filter(c => c.id !== id);
+            processTransparency();
+        });
+        
+        processTransparency();
+    }
+
+    // 手動追加ボタン
+    addColorBtn.addEventListener('click', () => addColorInput('#ffffff'));
+
+    // --- 初期イベント設定 ---
+    function setupEvents() {
+        sizeSelect.addEventListener('change', () => { if (originalImage) initCanvasAndProcess(); });
+        toleranceInput.addEventListener('input', () => { toleranceValue.textContent = toleranceInput.value; processTransparency(); });
+        
+        // マウスホイールでズーム
+        canvasWrapper.addEventListener('wheel', handleWheel, { passive: false });
+        
+        // Spaceキーでドラッグ移動モード
+        window.addEventListener('keydown', (e) => { 
+            if (e.code === 'Space' && originalImageData) { 
+                e.preventDefault(); 
+                isSpaceDown = true; 
+                canvasWrapper.classList.add('dragging'); 
+            } 
+        });
+        window.addEventListener('keyup', (e) => { 
+            if (e.code === 'Space') { 
+                isSpaceDown = false; 
+                canvasWrapper.classList.remove('dragging'); 
+            } 
+        });
+
+        // ドラッグ移動 (Spaceキー押下時のみ)
+        canvasWrapper.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag);
+        window.addEventListener('mouseup', endDrag);
+
+        // クリックで色取得 (Spaceキーを押していない時)
+        canvasWrapper.addEventListener('click', handleCanvasClick);
+    }
+
+    // --- 画像読み込み ---
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                originalImage = img;
+                workspace.style.display = 'flex';
+                downloadBtn.disabled = false;
+                
+                scale = 1;
+                offsetX = 0;
+                offsetY = 0;
+                
+                // 初回は白とグレーをデフォルトで追加
+                colorListContainer.innerHTML = '';
+                colorPickers = [];
+                addColorInput('#ffffff');
+                addColorInput('#cccccc');
+
+                initCanvasAndProcess();
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function initCanvasAndProcess() {
+        const maxSize = parseInt(sizeSelect.value, 10);
+        let targetWidth = originalImage.width;
+        let targetHeight = originalImage.height;
+        
+        if (targetWidth > maxSize || targetHeight > maxSize) {
+            const ratio = Math.min(maxSize / targetWidth, maxSize / targetHeight);
+            targetWidth = Math.round(targetWidth * ratio);
+            targetHeight = Math.round(targetHeight * ratio);
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+        
+        if(scale === 1 && offsetX === 0 && offsetY === 0) {
+            const wrapperRect = canvasWrapper.getBoundingClientRect();
+            offsetX = (wrapperRect.width - targetWidth) / 2;
+            offsetY = (wrapperRect.height - targetHeight) / 2;
+            updateCanvasTransform();
+        }
+        
+        ctx.clearRect(0, 0, targetWidth, targetHeight);
+        ctx.drawImage(originalImage, 0, 0, targetWidth, targetHeight);
+        originalImageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+        
+        processTransparency();
+    }
+
+    // --- 透過処理 ---
+    function processTransparency() {
+        if (!originalImageData) return;
+
+        const tolerance = parseInt(toleranceInput.value);
+        const range = tolerance * 2.55; 
+        
+        const activeTargets = colorPickers
+            .filter(c => c.checkbox.checked)
+            .map(c => hexToRgb(c.input.value))
+            .filter(rgb => rgb !== null);
+
+        const resultImageData = new ImageData(
+            new Uint8ClampedArray(originalImageData.data),
+            originalImageData.width,
+            originalImageData.height
+        );
+        const data = resultImageData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            
+            let shouldTransparent = false;
+            for(let j=0; j < activeTargets.length; j++) {
+                const t = activeTargets[j];
+                const diff = Math.max(Math.abs(r - t.r), Math.abs(g - t.g), Math.abs(b - t.b));
+                if (diff <= range) {
+                    shouldTransparent = true;
+                    break;
+                }
+            }
+            if (shouldTransparent) data[i + 3] = 0;
+        }
+
+        displayImageData = resultImageData;
+        ctx.putImageData(displayImageData, 0, 0);
+    }
+
+    // --- ズームとパン ---
+    function updateCanvasTransform() {
+        canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+
+    function handleWheel(e) {
+        if(!originalImageData) return;
+        e.preventDefault();
+
+        const wrapperRect = canvasWrapper.getBoundingClientRect();
+        const mouseX = e.clientX - wrapperRect.left;
+        const mouseY = e.clientY - wrapperRect.top;
+
+        const zoomIntensity = 0.1;
+        const wheel = e.deltaY < 0 ? 1 : -1;
+        const zoom = Math.exp(wheel * zoomIntensity);
+        const newScale = Math.min(Math.max(scale * zoom, 0.1), 15);
+
+        offsetX = mouseX - (mouseX - offsetX) * (newScale / scale);
+        offsetY = mouseY - (mouseY - offsetY) * (newScale / scale);
+        scale = newScale;
+
+        updateCanvasTransform();
+    }
+
+    function startDrag(e) {
+        if(!originalImageData || !isSpaceDown) return;
+        isDragging = true;
+        dragStartX = e.clientX - offsetX;
+        dragStartY = e.clientY - offsetY;
+    }
+
+    function drag(e) {
+        if (!isDragging || !isSpaceDown) return;
+        e.preventDefault();
+        offsetX = e.clientX - dragStartX;
+        offsetY = e.clientY - dragStartY;
+        updateCanvasTransform();
+    }
+
+    function endDrag() {
+        isDragging = false;
+    }
+
+    // --- 画像クリックで色を自動追加 ---
+    function handleCanvasClick(e) {
+        // ドラッグ移動中は無視
+        if (isSpaceDown) return;
+        // マウスのブレを考慮
+        if (Math.abs(e.clientX - dragStartX - offsetX) > 5 && isDragging) return;
+        
+        const wrapperRect = canvasWrapper.getBoundingClientRect();
+        const mouseX = e.clientX - wrapperRect.left;
+        const mouseY = e.clientY - wrapperRect.top;
+
+        const x = Math.floor((mouseX - offsetX) / scale);
+        const y = Math.floor((mouseY - offsetY) / scale);
+
+        if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
+
+        const pixelIndex = (y * canvas.width + x) * 4;
+        const r = originalImageData.data[pixelIndex];
+        const g = originalImageData.data[pixelIndex + 1];
+        const b = originalImageData.data[pixelIndex + 2];
+        const hex = rgbToHex(r, g, b);
+
+        // 既に同じ色がリストに存在するかチェック
+        const exists = colorPickers.some(c => c.input.value.toLowerCase() === hex);
+        
+        if (!exists) {
+            addColorInput(hex);
+        }
+    }
+
+
+    // --- ICO変換 ---
+    async function convertCanvasToIco(canvasData) {
+        return new Promise((resolve) => {
+            canvasData.toBlob(async (blob) => {
+                const pngBuffer = await blob.arrayBuffer();
+                const pngData = new Uint8Array(pngBuffer);
+
+                const width = canvasData.width;
+                const height = canvasData.height;
+                const icoWidth = width >= 256 ? 0 : width;
+                const icoHeight = height >= 256 ? 0 : height;
+
+                const headerSize = 6;
+                const directorySize = 16;
+                const totalSize = headerSize + directorySize + pngData.length;
+
+                const buffer = new ArrayBuffer(totalSize);
+                const view = new DataView(buffer);
+
+                view.setUint16(0, 0, true); 
+                view.setUint16(2, 1, true); 
+                view.setUint16(4, 1, true); 
+
+                view.setUint8(6, icoWidth);   
+                view.setUint8(7, icoHeight);  
+                view.setUint8(8, 0);          
+                view.setUint8(9, 0);          
+                view.setUint16(10, 1, true);  
+                view.setUint16(12, 32, true); 
+                view.setUint32(14, pngData.length, true); 
+                view.setUint32(18, headerSize + directorySize, true); 
+
+                const icoData = new Uint8Array(buffer);
+                icoData.set(pngData, headerSize + directorySize);
+
+                resolve(new Blob([icoData], { type: 'image/x-icon' }));
+            }, 'image/png');
+        });
+    }
+
+    // --- ダウンロード ---
+    downloadBtn.addEventListener('click', async () => {
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = "処理中...";
+
+        const icoBlob = await convertCanvasToIco(canvas);
+        const url = URL.createObjectURL(icoBlob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transparent_icon.ico';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = ".ico 形式でダウンロード";
+    });
+
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+    }
+    function rgbToHex(r, g, b) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).padStart(6, '0').slice(-6);
+    }
+
+    setupEvents();
+</script>
+
+</body>
+</html>

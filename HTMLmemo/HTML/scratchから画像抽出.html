@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SB3 SVG Extractor & PNG Converter</title>
+    <!-- JSZipライブラリの読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.4em;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        p {
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f8f5;
+            border-left: 4px solid #1abc9c;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #1abc9c;
+            width: 0%;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SB3のSVG抽出＆PNG変換・圧縮ツール</h1>
+    <p><code>.sb3</code> (または <code>.ssb3</code>) ファイルを選択すると、内部のZIP構造を展開し、全ての <b>SVGファイル</b> を取得します。取得したSVGを <b>PNG画像</b> に変換し、フォルダに格納した状態のZIPファイルとしてダウンロードします。</p>
+
+    <div class="form-group">
+        <label for="fileInput">SB3 / SSB3 ファイルを選択:</label>
+        <input type="file" id="fileInput" accept=".sb3,.ssb3,.zip">
+    </div>
+
+    <div class="form-group">
+        <label for="folderName">格納するフォルダ名:</label>
+        <input type="text" id="folderName" value="extracted_pngs">
+    </div>
+
+    <div class="form-group">
+        <label for="zipName">保存するZIPファイル名:</label>
+        <input type="text" id="zipName" value="converted_images.zip">
+    </div>
+
+    <button id="processBtn" disabled>抽出・変換してZIPをダウンロード</button>
+
+    <div id="status"></div>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const folderNameInput = document.getElementById('folderName');
+    const zipNameInput = document.getElementById('zipName');
+    const processBtn = document.getElementById('processBtn');
+    const statusDiv = document.getElementById('status');
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+
+    // ファイル選択時にボタンを有効化
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            processBtn.disabled = false;
+        } else {
+            processBtn.disabled = true;
+        }
+    });
+
+    // メッセージとプログレスバーを更新する関数
+    function updateStatus(message, showProgress = false, percent = 0) {
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = message;
+        if (showProgress) {
+            progressBar.style.display = 'block';
+            progressFill.style.width = percent + '%';
+        } else {
+            progressBar.style.display = 'none';
+        }
+    }
+
+    // SVG文字列をPNGのBlobに変換する関数
+    function convertSvgTextToPngBlob(svgText, filename) {
+        return new Promise((resolve, reject) => {
+            const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                // Scratchの画像サイズを考慮し、取得できない場合はデフォルト値を設定
+                const width = img.naturalWidth || img.width || 480;
+                const height = img.naturalHeight || img.height || 360;
+                
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                URL.revokeObjectURL(url);
+
+                canvas.toBlob((pngBlob) => {
+                    if (pngBlob) {
+                        resolve(pngBlob);
+                    } else {
+                        reject(new Error("Canvas変換エラー"));
+                    }
+                }, 'image/png');
+            };
+
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                reject(new Error(`「${filename}」の画像読み込みに失敗しました。`));
+            };
+
+            img.src = url;
+        });
+    }
+
+    // 処理開始ボタンが押された時の処理
+    processBtn.addEventListener('click', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const folderName = folderNameInput.value.trim() || 'extracted_pngs';
+        let zipFileName = zipNameInput.value.trim() || 'converted_images.zip';
+        if (!zipFileName.endsWith('.zip')) zipFileName += '.zip';
+
+        processBtn.disabled = true;
+        updateStatus('SB3ファイルを読み込んでいます...', false);
+
+        try {
+            // 1. SB3(ZIP)ファイルを読み込む
+            const loadedZip = await JSZip.loadAsync(file);
+            
+            // 2. 拡張子が .svg のファイル名を全て取得
+            const svgFileNames = Object.keys(loadedZip.files).filter(name => name.endsWith('.svg'));
+
+            if (svgFileNames.length === 0) {
+                updateStatus('ファイル内にSVG画像が見つかりませんでした。');
+                processBtn.disabled = false;
+                return;
+            }
+
+            updateStatus(`${svgFileNames.length}個のSVGファイルが見つかりました。変換を準備中...`, true, 0);
+
+            // 出力用の新しいZIPを作成
+            const outputZip = new JSZip();
+            const outputFolder = outputZip.folder(folderName);
+
+            // 3. SVGファイルを1つずつ取り出し、PNGに変換して新しいZIPに格納
+            for (let i = 0; i < svgFileNames.length; i++) {
+                const svgFileName = svgFileNames[i];
+                const percent = Math.floor((i / svgFileNames.length) * 100);
+                
+                updateStatus(`変換中 (${i + 1}/${svgFileNames.length}): ${svgFileName}`, true, percent);
+
+                // SVGのテキストデータを取得
+                const svgText = await loadedZip.files[svgFileName].async("string");
+                
+                try {
+                    // PNGに変換
+                    const pngBlob = await convertSvgTextToPngBlob(svgText, svgFileName);
+                    
+                    // 元のファイル名からパス部分を取り除き、拡張子を.pngに変更
+                    const baseName = svgFileName.split('/').pop().replace(/\.svg$/i, '') + '.png';
+                    
+                    // 新しいフォルダに格納
+                    outputFolder.file(baseName, pngBlob);
+                } catch (err) {
+                    console.warn(`ファイル ${svgFileName} の変換をスキップしました:`, err);
+                }
+            }
+
+            updateStatus('変換が完了しました。ZIPファイルを作成中...', true, 100);
+
+            // 4. ZIPファイルを生成
+            const zipContent = await outputZip.generateAsync({ type: 'blob' });
+
+            // 5. ダウンロードの実行
+            const downloadUrl = URL.createObjectURL(zipContent);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = zipFileName;
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(downloadUrl);
+            }, 100);
+
+            updateStatus(`完了！\n${svgFileNames.length} 個の画像を変換し、「${zipFileName}」としてダウンロードしました。`, false);
+        } catch (error) {
+            console.error(error);
+            updateStatus(`エラーが発生しました: ${error.message}\n正しい形式のファイルか確認してください。`, false);
+        } finally {
+            processBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

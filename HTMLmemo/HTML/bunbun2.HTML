@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住所データ貼り付け送信フォーム</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        /* 複数行入力できるようにtextareaのスタイルを調整 */
+        textarea { width: 100%; max-width: 500px; height: 150px; padding: 10px; box-sizing: border-box; font-size: 16px; }
+        input[type="submit"] { padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer; font-size: 16px; }
+        input[type="submit"]:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+    <h2>住所データ貼り付けフォーム</h2>
+    <p>以下の枠内に、お持ちの住所データを貼り付けて送信ボタンを押してください。</p>
+
+    <form action="mailto:your-email@example.com" method="post" enctype="text/plain">
+        
+        <div class="form-group">
+            <label for="address_data">ここに住所データを貼り付けてください（必須）</label>
+            <textarea id="address_data" name="■貼り付けられた住所データ" placeholder="例：&#10;〒105-0011&#10;東京都港区芝公園4-2-8&#10;山田 太郎 様" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="メールソフトに貼り付けて送信">
+        </div>
+
+    </form>
+
+</body>
+</html>

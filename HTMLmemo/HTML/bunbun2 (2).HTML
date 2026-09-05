@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住所入力・メール送信フォーム</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; max-width: 400px; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #007BFF; color: white; border: none; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h2>住所入力フォーム</h2>
+
+    <form id="addressForm">
+        
+        <div class="form-group">
+            <label for="postal_code">郵便番号（必須）</label>
+            <input type="text" id="postal_code" placeholder="例: 105-0011" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prefecture">都道府県（必須）</label>
+            <input type="text" id="prefecture" placeholder="例: 東京都" required>
+        </div>
+
+        <div class="form-group">
+            <label for="city">市区町村（必須）</label>
+            <input type="text" id="city" placeholder="例: 港区芝公園" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address_details">番地・建物名・部屋番号</label>
+            <input type="text" id="address_details" placeholder="例: 4-2-8 東京タワービル1F">
+        </div>
+
+        <div class="form-group">
+            <button type="button" onclick="sendEmail()">メール送信ページ（メールソフト）を開く</button>
+        </div>
+
+    </form>
+
+    <script>
+        function sendEmail() {
+            // 1. フォームに入力された値を取得する
+            const postalCode = document.getElementById('postal_code').value;
+            const prefecture = document.getElementById('prefecture').value;
+            const city = document.getElementById('city').value;
+            const details = document.getElementById('address_details').value;
+
+            // 必須項目が空の場合は警告を出してストップする
+            if(!postalCode || !prefecture || !city) {
+                alert("郵便番号、都道府県、市区町村は必ず入力してください。");
+                return;
+            }
+
+            // 2. メール本文用に、住所のテキストをきれいに合体させる
+            const bodyText = "以下の住所データを送信します。\n\n" +
+                             "〒" + postalCode + "\n" +
+                             prefecture + city + details;
+
+            // 3. 宛先メールアドレスと件名を設定（※ここをご自身のものに変更してください）
+            const emailAddress = "amabasi.ayumu@gmail.com";
+            const subject = "住所データの送信";
+
+            // 4. メールソフトを起動するためのURL（mailtoリンク）を作成する
+            // ※ encodeURIComponent を使うことで、日本語の文字化けを防ぎます
+            const mailtoLink = "mailto:" + emailAddress + 
+                               "?subject=" + encodeURIComponent(subject) + 
+                               "&body=" + encodeURIComponent(bodyText);
+
+            // 5. 作成したリンクへ移動（ここでメールソフトが直接立ち上がります）
+            window.location.href = mailtoLink;
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品一覧</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f4f6f8;
+        }
+        .item-name {
+            text-align: left;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            text-align: right;
+        }
+        label {
+            cursor: pointer;
+            display: block;
+        }
+        .submit-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>商品一覧</h2>
+
+    <form>
+        <table id="itemTable">
+            <thead>
+                <tr>
+                    <th>選択</th>
+                    <th>商品名</th>
+                    <th>単価</th>
+                    <th>個数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="checkbox" class="item-check" id="chk_item1"></td>
+                    <td class="item-name"><label for="chk_item1">商品 1</label></td>
+                    <td>¥1,000</td>
+                    <td><input type="number" class="item-qty" min="1" value="1"></td>
+                </tr>
+
+                <tr>
+                    <td><input type="checkbox" class="item-check" id="chk_item2"></td>
+                    <td class="item-name"><label for="chk_item2">商品 2</label></td>
+                    <td>¥2,500</td>
+                    <td><input type="number" class="item-qty" min="1" value="1"></td>
+                </tr>
+
+                <tr>
+                    <td><input type="checkbox" class="item-check" id="chk_item3"></td>
+                    <td class="item-name"><label for="chk_item3">商品 3</label></td>
+                    <td>¥800</td>
+                    <td><input type="number" class="item-qty" min="1" value="1"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button type="button" class="submit-btn" id="saveBtn">テキストとして保存</button>
+    </form>
+
+    <script>
+        // 「テキストとして保存」ボタンがクリックされたときの処理
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            // テーブル内のすべての行（tbody内のtr）を取得
+            const rows = document.querySelectorAll('#itemTable tbody tr');
+            let textData = "【選択された商品リスト】\n--------------------\n";
+            let hasChecked = false;
+
+            // 各行を1つずつ確認する
+            rows.forEach(row => {
+                // その行のチェックボックスを取得
+                const checkbox = row.querySelector('.item-check');
+                
+                // チェックされている場合のみ処理を行う
+                if (checkbox.checked) {
+                    hasChecked = true;
+                    // 商品名を取得（labelタグの中のテキスト）
+                    const itemName = row.querySelector('.item-name label').textContent;
+                    // 個数を取得
+                    const qty = row.querySelector('.item-qty').value;
+                    
+                    // 保存用の文字列に追加
+                    textData += `${itemName} : ${qty}個\n`;
+                }
+            });
+
+            // 1つもチェックされていなかった場合の警告
+            if (!hasChecked) {
+                alert('商品が選択されていません。');
+                return;
+            }
+
+            textData += "--------------------\n";
+
+            // ----- ここからテキストファイルとしてダウンロードする処理 -----
+            // 文字列をBlob（ファイルのようなデータ）に変換
+            const blob = new Blob([textData], { type: 'text/plain;charset=utf-8' });
+            // ダウンロード用のURLを作成
+            const url = URL.createObjectURL(blob);
+            
+            // 一時的な <a> タグを作成して自動でクリックさせる
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'selected_items.txt'; // 保存されるファイル名
+            document.body.appendChild(a);
+            a.click();
+            
+            // 処理が終わったら作成した要素やURLを削除（お掃除）
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+
+</body>
+</html>

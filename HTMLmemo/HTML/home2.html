@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天橋　歩の検索</title>
+    
+    <script>
+        const savedTheme = localStorage.getItem('天橋　歩の検索') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <style>
+        /* ===== 色変数 ===== */
+        :root {
+            --bg-color: #ffffff; --text-color: #3c4043; --bar-bg: #f8f9fa; --border-color: #dfe1e5;
+            --hover-bg: #f1f3f4; --icon-bg: #ffffff; --btn-bg: #f8f9fa; --shadow-color: rgba(0,0,0,0.15);
+            --search-shadow: rgba(32, 33, 36, 0.28); --icon-color: #9aa0a6;
+            --logo-b: #4285f4; --logo-r: #ea4335; --logo-y: #fbbc05; --logo-g: #34a853;
+        }
+        [data-theme="dark"] {
+            --bg-color: #202124; --text-color: #e8eaed; --bar-bg: #303134; --border-color: #5f6368;
+            --hover-bg: #3c4043; --icon-bg: #303134; --btn-bg: #303134; --shadow-color: rgba(0,0,0,0.5);
+            --search-shadow: rgba(0, 0, 0, 0.5); --icon-color: #9aa0a6;
+            --logo-b: #8ab4f8; --logo-r: #f28b82; --logo-y: #fde293; --logo-g: #81c995;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+            background-color: var(--bg-color); color: var(--text-color);
+            padding-left: 60px; padding-right: 60px; padding-top: 60px;
+            box-sizing: border-box; transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ===== ツールバー ===== */
+        .favorites-bar {
+            position: fixed; top: 0; left: 0; right: 0; min-height: 45px;
+            background-color: var(--bar-bg); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 5px 15px; z-index: 100; gap: 10px; transition: background-color 0.3s;
+        }
+        
+        .translate-box {
+            display: flex; align-items: center; border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 4px 12px; background-color: var(--bg-color);
+            margin-right: 5px; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .translate-box:focus-within { border-color: var(--logo-b); box-shadow: 0 0 0 1px var(--logo-b); }
+        .translate-input { border: none; outline: none; background: transparent; color: var(--text-color); font-size: 13px; width: 130px; margin-left: 6px; }
+        .translate-input::placeholder { color: var(--icon-color); }
+
+        .action-btn { background: transparent; border: none; color: var(--logo-b); font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: background-color 0.2s; }
+        .action-btn:hover { background-color: var(--hover-bg); }
+        .right-tools { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+        .theme-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; transition: background-color 0.2s; color: var(--text-color); }
+        .theme-btn:hover { background-color: var(--hover-bg); }
+
+        /* ===== ランチャー・サイドバー共通 ===== */
+        .drawer {
+            position: fixed; top: 45px; width: 60px; height: 65vh; 
+            background-color: var(--bar-bg); border-bottom: 1px solid var(--border-color);
+            display: flex; flex-direction: column; align-items: flex-start;
+            padding-top: 10px; padding-bottom: 20px; z-index: 200;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+            overflow-x: hidden; overflow-y: hidden;
+        }
+        .drawer:hover { width: 240px; overflow-y: auto; }
+        .drawer::-webkit-scrollbar { width: 8px; }
+        .drawer::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        
+        .left-launcher { left: 0; border-right: 1px solid var(--border-color); border-bottom-right-radius: 16px; }
+        .left-launcher:hover { box-shadow: 4px 4px 16px var(--shadow-color); }
+        
+        .sidebar { right: 0; border-left: 1px solid var(--border-color); border-bottom-left-radius: 16px; }
+        .sidebar:hover { box-shadow: -4px 4px 16px var(--shadow-color); }
+
+        /* ボタンデザイン */
+        .dock-btn, .shortcut {
+            /* 削除ボタンを絶対配置するために relative を追加 */
+            position: relative; 
+            display: flex; align-items: center; justify-content: flex-start;
+            width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: pointer; 
+            transition: background-color 0.2s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
+        }
+        .dock-btn:hover, .shortcut:hover { background-color: var(--hover-bg); }
+        .icon-wrapper, .shortcut-icon { width: 60px; height: 44px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size: 18px; color: var(--icon-color); }
+        .dock-btn img, .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; }
+        .dock-btn span.text, .shortcut span.text { opacity: 0; transition: opacity 0.2s; }
+        .drawer:hover .dock-btn span.text, .drawer:hover .shortcut span.text { opacity: 1; } 
+
+        /* ▼ 新規：削除ボタンのスタイル ▼ */
+        .delete-btn {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            width: 22px; height: 22px; background-color: var(--logo-r); color: white;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s, background-color 0.2s;
+        }
+        .delete-btn:hover { background-color: #d93025; }
+        
+        /* サイドバーが開いていて、かつ要素にホバーした時だけ削除ボタンを表示 */
+        .sidebar:hover .shortcut:hover .delete-btn {
+            opacity: 1; pointer-events: auto;
+        }
+
+        .launcher-divider { width: 40px; height: 1px; background-color: var(--border-color); margin: 10px; flex-shrink: 0; transition: width 0.2s; }
+        .drawer:hover .launcher-divider { width: 220px; }
+
+        /* フォルダ */
+        #favorites-list { width: 100%; display: flex; flex-direction: column; }
+        .folder-container { width: 100%; display: flex; flex-direction: column; }
+        .dropdown-content { display: none; flex-direction: column; padding-left: 60px; padding-right: 10px; width: 100%; box-sizing: border-box; }
+        .drawer:hover .folder-container:hover .dropdown-content { display: flex; }
+        .dropdown-item { display: flex; align-items: center; height: 36px; padding: 0 10px; text-decoration: none; color: var(--text-color); font-size: 13px; white-space: nowrap; overflow: hidden; border-radius: 6px; }
+        .dropdown-item:hover { background-color: var(--hover-bg); }
+        .dropdown-item img { width: 16px; height: 16px; margin-right: 8px; border-radius: 50%; flex-shrink: 0; }
+        .shortcuts-container { width: 100%; display: flex; flex-direction: column; }
+
+        /* ===== 中央検索 ===== */
+        .container { text-align: center; width: 100%; max-width: 600px; margin-top: -10vh; }
+        .logo { font-size: 80px; margin-bottom: 25px; letter-spacing: -2px; color: var(--logo-b); transition: color 0.3s; }
+        .logo .red { color: var(--logo-r); } .logo .yellow { color: var(--logo-y); } .logo .green { color: var(--logo-g); }
+        .search-box { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 24px; padding: 10px 20px; margin: 0 auto 30px auto; width: 80%; max-width: 580px; transition: box-shadow 0.2s, background-color 0.3s; background-color: var(--bg-color); }
+        .search-box:hover, .search-box:focus-within { box-shadow: 0 1px 6px var(--search-shadow); border-color: transparent; }
+        .search-icon { color: var(--icon-color); margin-right: 10px; font-size: 18px; }
+        .search-input { border: none; outline: none; width: 100%; font-size: 16px; background-color: transparent; color: var(--text-color); }
+        .search-input::placeholder { color: var(--icon-color); }
+        .buttons button { background-color: var(--btn-bg); border: 1px solid var(--btn-bg); border-radius: 4px; color: var(--text-color); font-size: 14px; margin: 0 5px; padding: 10px 20px; cursor: pointer; transition: background-color 0.2s; }
+        .buttons button:hover { background-color: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-color); }
+    </style>
+</head>
+<body>
+
+    <header class="favorites-bar">
+        <form action="https://translate.google.co.jp/" method="GET" target="_blank" rel="noopener noreferrer" class="translate-box">
+            <input type="hidden" name="sl" value="auto">
+            <input type="hidden" name="tl" value="ja">
+            <input type="hidden" name="op" value="translate">
+            <span style="font-size: 14px;">🌐</span>
+            <input type="text" name="text" class="translate-input" placeholder="Google翻訳..." required>
+        </form>
+        
+        <input type="file" id="folder-input" webkitdirectory directory style="display: none;">
+        <button class="action-btn" onclick="document.getElementById('folder-input').click()">📁 フォルダ同期</button>
+        <button class="action-btn" onclick="clearFavorites()" style="color: var(--logo-r);">🗑 リセット</button>
+        <div class="right-tools">
+            <button class="action-btn" onclick="addShortcut()">＋ ショートカット追加</button>
+            <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
+        </div>
+    </header>
+
+    <aside class="drawer left-launcher">
+        <div style="width: 100%;">
+            <a href="https://www.google.co.jp/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=google.com&sz=64" alt="検索"></div><span class="text">検索</span></a>
+            <a href="https://maps.google.co.jp/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=maps.google.com&sz=64" alt="マップ"></div><span class="text">マップ</span></a>
+            <a href="https://www.youtube.com/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=64" alt="YouTube"></div><span class="text">YouTube</span></a>
+            <a href="https://mail.google.com/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=mail.google.com&sz=64" alt="Gmail"></div><span class="text">Gmail</span></a>
+            <a href="https://drive.google.com/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=drive.google.com&sz=64" alt="ドライブ"></div><span class="text">ドライブ</span></a>
+            <a href="https://photos.google.com/" class="dock-btn" target="_blank" rel="noopener noreferrer"><div class="icon-wrapper"><img src="https://www.google.com/s2/favicons?domain=photos.google.com&sz=64" alt="フォト"></div><span class="text">フォト</span></a>
+        </div>
+        <div id="favorites-list"></div>
+    </aside>
+
+    <main class="container">
+        <h1 class="logo">
+            My<span class="red">S</span><span class="yellow">e</span><span class="blue">a</span><span class="green">r</span><span class="red">c</span><span class="yellow">h</span>
+        </h1>
+        <form action="https://www.google.com/search" method="GET" target="_blank" rel="noopener noreferrer">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="q" class="search-input" placeholder="Google で検索" required autocomplete="off" autofocus>
+            </div>
+            <div class="buttons">
+                <button type="submit">Google 検索</button>
+            </div>
+        </form>
+    </main>
+
+    <aside class="drawer sidebar">
+        <div class="shortcuts-container" id="shortcut-list"></div>
+    </aside>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFavorites();
+            renderShortcuts();
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            themeToggleBtn.innerText = currentTheme === 'dark' ? '☀️' : '🌙';
+
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('myTheme', newTheme);
+                themeToggleBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            });
+        });
+
+        document.getElementById('folder-input').addEventListener('change', async function(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            let rootItems = [];     
+            let folderItems = {};   
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const text = await file.text();
+                let url = '';
+
+                const urlMatchWin = text.match(/URL=(.+)/i);
+                if (urlMatchWin) {
+                    url = urlMatchWin[1].trim();
+                } else {
+                    const urlMatchMac = text.match(/<string>(https?:\/\/[^<]+)<\/string>/i);
+                    if (urlMatchMac) {
+                        url = urlMatchMac[1].trim();
+                    }
+                }
+
+                if (url) {
+                    const cleanName = file.name.replace(/\.(url|webloc)$/i, '');
+                    const parts = file.webkitRelativePath.split('/');
+                    
+                    if (parts.length === 2) {
+                        rootItems.push({ name: cleanName, url: url });
+                    } else if (parts.length >= 3) {
+                        const subFolderName = parts[1];
+                        if (!folderItems[subFolderName]) folderItems[subFolderName] = [];
+                        folderItems[subFolderName].push({ name: cleanName, url: url });
+                    }
+                }
+            }
+
+            const treeData = { root: rootItems, folders: folderItems };
+            if (rootItems.length > 0 || Object.keys(folderItems).length > 0) {
+                localStorage.setItem('myFolderFavoritesTree', JSON.stringify(treeData));
+                renderFavorites();
+                alert("フォルダ階層を読み込みました！");
+            }
+            e.target.value = '';
+        });
+
+        function renderFavorites() {
+            const container = document.getElementById('favorites-list');
+            container.innerHTML = ''; 
+            const dataStr = localStorage.getItem('myFolderFavoritesTree');
+            if (!dataStr) return;
+            const data = JSON.parse(dataStr);
+
+            if ((data.folders && Object.keys(data.folders).length > 0) || (data.root && data.root.length > 0)) {
+                const divider = document.createElement('div');
+                divider.className = 'launcher-divider';
+                container.appendChild(divider);
+            }
+
+            if (data.folders) {
+                for (const folderName in data.folders) {
+                    const items = data.folders[folderName];
+                    const folderCont = document.createElement('div');
+                    folderCont.className = 'folder-container';
+                    
+                    const btn = document.createElement('div');
+                    btn.className = 'dock-btn';
+                    btn.innerHTML = `<div class="icon-wrapper">📁</div><span class="text">${folderName} ▾</span>`;
+                    folderCont.appendChild(btn);
+
+                    const content = document.createElement('div');
+                    content.className = 'dropdown-content';
+                    
+                    items.forEach(fav => {
+                        const a = document.createElement('a');
+                        a.className = 'dropdown-item';
+                        a.href = fav.url;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        const iconUrl = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
+                        a.innerHTML = `<img src="${iconUrl}" alt="${fav.name}"> <span>${fav.name}</span>`;
+                        content.appendChild(a);
+                    });
+                    folderCont.appendChild(content);
+                    container.appendChild(folderCont);
+                }
+            }
+
+            if (data.root) {
+                data.root.forEach((fav) => {
+                    const a = document.createElement('a');
+                    a.className = 'dock-btn';
+                    a.href = fav.url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    const iconUrl = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`; 
+                    a.innerHTML = `<div class="icon-wrapper"><img src="${iconUrl}" alt="${fav.name}"></div><span class="text">${fav.name}</span>`;
+                    container.appendChild(a);
+                });
+            }
+        }
+
+        function clearFavorites() {
+            if(confirm("読み込んだお気に入りをすべて消去しますか？")) {
+                localStorage.removeItem('myFolderFavoritesTree');
+                renderFavorites();
+            }
+        }
+
+        // ▼ 変更箇所：ショートカットの描画に削除ボタンを追加 ▼
+        function renderShortcuts() {
+            const container = document.getElementById('shortcut-list');
+            container.innerHTML = ''; 
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+
+            shortcuts.forEach((sc, index) => {
+                const a = document.createElement('a');
+                a.className = 'shortcut';
+                a.href = sc.url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                
+                const iconUrl = `https://www.google.com/s2/favicons?domain=${sc.url}&sz=64`;
+                
+                // アイコン、テキスト、削除ボタンを配置
+                a.innerHTML = `
+                    <div class="shortcut-icon"><img src="${iconUrl}" alt="${sc.name}"></div>
+                    <span class="text">${sc.name}</span>
+                    <div class="delete-btn" onclick="deleteShortcut(event, ${index})" title="削除">×</div>
+                `;
+                container.appendChild(a);
+            });
+        }
+
+        // ▼ 新規：ショートカットを個別に削除する処理 ▼
+        function deleteShortcut(event, index) {
+            // aタグのリンク遷移を発動させないためのおまじない
+            event.preventDefault();
+            event.stopPropagation();
+            
+            if (confirm("このショートカットを削除しますか？")) {
+                let shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+                shortcuts.splice(index, 1); // 該当のデータを1つ削除
+                localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+                renderShortcuts(); // 画面を再描画
+            }
+        }
+
+        function addShortcut() {
+            const name = prompt("ショートカットの名前を入力:\n（例: Yahoo!ニュース）");
+            if (!name) return;
+            let url = prompt("URLを入力:\n（例: https://news.yahoo.co.jp）");
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+            shortcuts.push({ name: name, url: url });
+            localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+            renderShortcuts();
+        }
+    </script>
+</body>
+</html>

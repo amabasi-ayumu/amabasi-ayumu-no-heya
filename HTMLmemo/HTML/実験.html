@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>HTML Viewer</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Meiryo", sans-serif;
+        background: #f5f5f5;
+    }
+
+    /* 上部 */
+    header {
+        height: 55px;
+        padding: 10px;
+        background: white;
+        border-bottom: 1px solid #ccc;
+    }
+
+    button {
+        height: 35px;
+        padding: 0 20px;
+        cursor: pointer;
+    }
+
+    /* 全体 */
+    .main {
+        display: flex;
+        height: calc(100vh - 55px);
+    }
+
+    /* 左側 */
+    .sidebar {
+        width: 280px;
+        background: white;
+        border-right: 1px solid #ccc;
+        overflow-y: auto;
+    }
+
+    .title {
+        padding: 12px;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .file {
+        padding: 9px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+
+    .file:hover {
+        background: #eeeeee;
+    }
+
+    /* 右側 */
+    .viewer {
+        flex: 1;
+    }
+
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+    }
+
+    .message {
+        padding: 20px;
+        color: #777;
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <button onclick="selectFolder()">
+        📁 HTMLフォルダーを選択
+    </button>
+</header>
+
+<div class="main">
+
+    <div class="sidebar">
+
+        <div class="title">
+            HTMLファイル
+        </div>
+
+        <div id="fileList">
+            <div class="message">
+                フォルダーを選択してください
+            </div>
+        </div>
+
+    </div>
+
+    <div class="viewer">
+        <iframe id="viewer"></iframe>
+    </div>
+
+</div>
+
+<script>
+
+async function selectFolder() {
+
+    // フォルダー選択
+    const directory =
+        await window.showDirectoryPicker();
+
+    const fileList =
+        document.getElementById("fileList");
+
+    fileList.innerHTML = "";
+
+    // フォルダー内部を取得
+    for await (const entry of directory.values()) {
+
+        if (entry.kind !== "file")
+            continue;
+
+        // HTMLのみ
+        if (
+            !entry.name.toLowerCase().endsWith(".html") &&
+            !entry.name.toLowerCase().endsWith(".htm")
+        )
+            continue;
+
+        // 一覧作成
+        const item =
+            document.createElement("div");
+
+        item.className = "file";
+
+        item.textContent =
+            "📄 " + entry.name;
+
+        item.onclick = function () {
+            openHTML(entry);
+        };
+
+        fileList.appendChild(item);
+    }
+}
+
+
+// HTML表示
+async function openHTML(entry) {
+
+    const file =
+        await entry.getFile();
+
+    const url =
+        URL.createObjectURL(file);
+
+    document.getElementById("viewer").src =
+        url;
+}
+
+</script>
+
+</body>
+</html>

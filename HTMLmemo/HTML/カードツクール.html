@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複数並べて印刷ツール</title>
+    <style>
+        /* 画面表示用のスタイル（印刷時には非表示になる部分など） */
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .controls {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .controls label {
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .controls input {
+            padding: 5px;
+            font-size: 16px;
+            width: 100px;
+            margin-top: 5px;
+        }
+        .controls input[type="file"] {
+            width: auto;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* プレビュー兼印刷領域のスタイル */
+        #print-area {
+            background: #fff;
+            padding: 10mm; /* 用紙の余白 */
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+
+        .print-item {
+            box-sizing: border-box;
+            border: 1px dashed #ccc; /* 切り取り線として表示 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        /* --- 印刷時専用のスタイル --- */
+        @media print {
+            body {
+                margin: 0;
+                background-color: transparent;
+            }
+            .controls {
+                display: none; /* 印刷時は設定パネルを隠す */
+            }
+            #print-area {
+                padding: 0;
+                box-shadow: none;
+            }
+            .print-item {
+                border: 1px solid #000; /* 印刷時は実線またはお好みで */
+            }
+            /* ブラウザのデフォルト余白をなくす */
+            @page {
+                margin: 10mm; /* 実際の印刷余白 */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label>
+            画像を選択:
+            <input type="file" id="imageInput" accept="image/*">
+        </label>
+        <label>
+            幅 (mm):
+            <input type="number" id="itemWidth" value="50" min="10">
+        </label>
+        <label>
+            高さ (mm):
+            <input type="number" id="itemHeight" value="50" min="10">
+        </label>
+        <label>
+            間隔 (mm):
+            <input type="number" id="itemGap" value="5" min="0">
+        </label>
+        <label>
+            個数:
+            <input type="number" id="itemCount" value="12" min="1">
+        </label>
+        <button onclick="window.print()">印刷する</button>
+    </div>
+
+    <div id="print-area"></div>
+
+    <script>
+        // HTML要素の取得
+        const imageInput = document.getElementById('imageInput');
+        const itemWidth = document.getElementById('itemWidth');
+        const itemHeight = document.getElementById('itemHeight');
+        const itemGap = document.getElementById('itemGap');
+        const itemCount = document.getElementById('itemCount');
+        const printArea = document.getElementById('print-area');
+
+        let currentImageUrl = '';
+
+        // 画像がアップロードされたときの処理
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                currentImageUrl = event.target.result;
+                generatePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 数値が変更されたらプレビューを更新
+        [itemWidth, itemHeight, itemGap, itemCount].forEach(input => {
+            input.addEventListener('input', generatePreview);
+        });
+
+        // プレビューを生成する関数
+        function generatePreview() {
+            // 一度クリアする
+            printArea.innerHTML = '';
+            
+            const width = itemWidth.value;
+            const height = itemHeight.value;
+            const gap = itemGap.value;
+            const count = itemCount.value;
+
+            // 間隔の設定 (CSS Flexboxのgapを使用)
+            printArea.style.gap = `${gap}mm`;
+
+            for (let i = 0; i < count; i++) {
+                const item = document.createElement('div');
+                item.className = 'print-item';
+                item.style.width = `${width}mm`;
+                item.style.height = `${height}mm`;
+                
+                if (currentImageUrl) {
+                    item.style.backgroundImage = `url(${currentImageUrl})`;
+                } else {
+                    item.innerText = `${width}x${height}`; // 画像がない場合はサイズをテキスト表示
+                }
+                
+                printArea.appendChild(item);
+            }
+        }
+
+        // 初期状態でプレビューを描画
+        generatePreview();
+    </script>
+</body>
+</html>

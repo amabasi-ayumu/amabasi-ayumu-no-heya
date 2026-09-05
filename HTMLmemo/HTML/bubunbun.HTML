@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住所入力・メール送信フォーム</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; max-width: 400px; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; background-color: #EA4335; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        button:hover { background-color: #C5221F; }
+    </style>
+</head>
+<body>
+
+    <h2>住所入力フォーム</h2>
+
+    <form id="addressForm">
+        
+        <div class="form-group">
+            <label for="postal_code">郵便番号（必須）</label>
+            <input type="text" id="postal_code" placeholder="例: 105-0011" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prefecture">都道府県（必須）</label>
+            <input type="text" id="prefecture" placeholder="例: 東京都" required>
+        </div>
+
+        <div class="form-group">
+            <label for="city">市区町村（必須）</label>
+            <input type="text" id="city" placeholder="例: 港区芝公園" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address_details">番地・建物名・部屋番号</label>
+            <input type="text" id="address_details" placeholder="例: 4-2-8 東京タワービル1F">
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Gmailを開いて送信</button>
+        </div>
+
+    </form>
+
+    <script>
+        document.getElementById('addressForm').addEventListener('submit', function(event) {
+            // 画面の更新を防ぐ
+            event.preventDefault();
+
+            const postalCode = document.getElementById('postal_code').value;
+            const prefecture = document.getElementById('prefecture').value;
+            const city = document.getElementById('city').value;
+            const details = document.getElementById('address_details').value;
+
+            // メール本文を作成
+            const bodyText = "以下の住所データを送信します。\n\n" +
+                             "〒" + postalCode + "\n" +
+                             prefecture + city + details;
+
+            // ★受信したいご自身のメールアドレスに変更してください
+            const emailAddress = "your-email@example.com";
+            const subject = "住所データの送信";
+
+            // Web版Gmail専用のURLを作成（su=件名, body=本文, to=宛先）
+            const gmailUrl = "https://mail.google.com/mail/?view=cm&fs=1" +
+                             "&to=" + encodeURIComponent(emailAddress) +
+                             "&su=" + encodeURIComponent(subject) + 
+                             "&body=" + encodeURIComponent(bodyText);
+
+            // 新しいタブでGmailの作成画面を開く
+            window.open(gmailUrl, '_blank');
+        });
+    </script>
+
+</body>
+</html>

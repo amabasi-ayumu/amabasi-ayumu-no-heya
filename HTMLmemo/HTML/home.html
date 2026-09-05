@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>まさ検索</title>
+    
+    <script>
+        const savedTheme = localStorage.getItem('myTheme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <style>
+        /* ===== 色変数 ===== */
+        :root {
+            --bg-color: #ffffff; --text-color: #3c4043; --bar-bg: #f8f9fa; --border-color: #dfe1e5;
+            --hover-bg: #f1f3f4; --icon-bg: #ffffff; --btn-bg: #f8f9fa; --shadow-color: rgba(0,0,0,0.15);
+            --search-shadow: rgba(32, 33, 36, 0.28); --icon-color: #9aa0a6;
+            --logo-b: #4285f4; --logo-r: #ea4335; --logo-y: #fbbc05; --logo-g: #34a853;
+        }
+        [data-theme="dark"] {
+            --bg-color: #202124; --text-color: #e8eaed; --bar-bg: #303134; --border-color: #5f6368;
+            --hover-bg: #3c4043; --icon-bg: #303134; --btn-bg: #303134; --shadow-color: rgba(0,0,0,0.5);
+            --search-shadow: rgba(0, 0, 0, 0.5); --icon-color: #9aa0a6;
+            --logo-b: #8ab4f8; --logo-r: #f28b82; --logo-y: #fde293; --logo-g: #81c995;
+        }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Segoe UI', Meiryo, sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+            background-color: var(--bg-color); color: var(--text-color);
+            padding-left: 60px; padding-right: 60px; padding-top: 60px;
+            box-sizing: border-box; transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ===== ツールバー ===== */
+        .favorites-bar {
+            position: fixed; top: 0; left: 0; right: 0; min-height: 45px;
+            background-color: var(--bar-bg); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 5px 15px; z-index: 100; gap: 5px; transition: background-color 0.3s;
+            flex-wrap: wrap;
+        }
+        
+        .translate-box {
+            display: flex; align-items: center; border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 4px 12px; background-color: var(--bg-color);
+            margin-right: 5px; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .translate-box:focus-within { border-color: var(--logo-b); box-shadow: 0 0 0 1px var(--logo-b); }
+        .translate-input { border: none; outline: none; background: transparent; color: var(--text-color); font-size: 13px; width: 120px; margin-left: 6px; }
+        .translate-input::placeholder { color: var(--icon-color); }
+
+        .action-btn { background: transparent; border: none; color: var(--logo-b); font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: background-color 0.2s; }
+        .action-btn:hover { background-color: var(--hover-bg); }
+        .right-tools { margin-left: auto; display: flex; align-items: center; gap: 5px; }
+        .theme-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; transition: background-color 0.2s; color: var(--text-color); }
+        .theme-btn:hover { background-color: var(--hover-bg); }
+
+        /* ===== 左側のランチャー ===== */
+        .left-launcher {
+            position: fixed; top: 60px; left: 0; height: 65vh; min-width: 60px;
+            background-color: var(--bar-bg); border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color); border-bottom-right-radius: 16px;
+            display: flex; flex-direction: row; align-items: flex-start;
+            z-index: 200; 
+            overflow: hidden;
+            box-shadow: none;
+            transition: box-shadow 0.2s;
+        }
+        
+        .left-launcher:hover { 
+            box-shadow: 4px 4px 16px var(--shadow-color); 
+        }
+
+        .launcher-content { 
+            display: flex; 
+            flex-direction: row; 
+            height: 100%; 
+            overflow-x: auto; 
+            overflow-y: hidden; 
+        }
+        .launcher-content::-webkit-scrollbar { height: 8px; }
+        .launcher-content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        .folder-col {
+            width: 60px; min-width: 60px; height: 100%; display: flex; flex-direction: column;
+            border-right: 1px solid var(--border-color); padding-top: 10px; padding-bottom: 10px; overflow-y: auto; overflow-x: hidden;
+            box-sizing: border-box;
+            transition: width 0.2s ease, min-width 0.2s ease;
+        }
+
+        .folder-col:hover {
+            width: auto; min-width: 220px; max-width: 320px;
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .folder-col::-webkit-scrollbar { width: 6px; }
+        .folder-col::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        .folder-title { 
+            padding: 0 10px 10px 10px; font-size: 13px; font-weight: bold; color: var(--text-color); 
+            border-bottom: 1px solid var(--border-color); margin-bottom: 5px; 
+            text-align: center;
+            word-break: break-word;
+        }
+        .folder-col:hover .folder-title {
+            text-align: left;
+            padding: 0 15px 10px 15px;
+        }
+        .folder-title .title-text { display: none; }
+        .folder-col:hover .folder-title .title-text { display: inline; }
+
+        .dock-btn {
+            display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; text-decoration: none;
+            background-color: transparent; border: none; cursor: pointer; transition: background-color 0.15s; color: var(--text-color); font-size: 13px;
+            box-sizing: border-box;
+        }
+        .folder-col:hover .dock-btn {
+            justify-content: flex-start;
+        }
+        .dock-btn:hover { background-color: var(--hover-bg); }
+
+        .icon-wrapper { width: 60px; height: 40px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+        .dock-btn img, .dock-btn svg { width: 20px; height: 20px; border-radius: 50%; object-fit: contain; }
+
+        .dock-btn span.text { 
+            display: none;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; flex-grow: 1; min-width: 0; 
+        }
+        .folder-col:hover .dock-btn span.text {
+            display: inline-block;
+        }
+
+        /* ===== 右側のサイドバー ===== */
+        .sidebar {
+            position: fixed; top: 60px; right: 0; width: 60px; height: 65vh; 
+            background-color: var(--bar-bg); border-left: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color); border-bottom-left-radius: 16px;
+            display: flex; flex-direction: column; align-items: flex-start; padding-top: 10px; padding-bottom: 20px; z-index: 200;
+            overflow-x: hidden; overflow-y: hidden;
+        }
+        .sidebar:hover { width: 240px; box-shadow: -4px 4px 16px var(--shadow-color); overflow-y: auto; }
+        .sidebar::-webkit-scrollbar { width: 8px; }
+        .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        .shortcuts-container { width: 100%; display: flex; flex-direction: column; }
+
+        .shortcut {
+            position: relative; display: flex; align-items: center; justify-content: flex-start; width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: pointer; 
+            transition: background-color 0.15s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
+        }
+        .shortcut:hover { background-color: var(--hover-bg); }
+        .shortcut-icon { width: 60px; height: 44px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size: 18px; color: var(--icon-color); }
+        .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
+        
+        .shortcut span.text { display: none; }
+        .sidebar:hover .shortcut span.text { display: inline; } 
+
+        .delete-btn {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; background-color: var(--logo-r); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.2s, background-color 0.2s;
+        }
+        .delete-btn:hover { background-color: #d93025; }
+        .sidebar:hover .shortcut:hover .delete-btn { opacity: 1; pointer-events: auto; }
+
+        /* ===== 中央検索 ===== */
+        .container { text-align: center; width: 100%; max-width: 600px; margin-top: -10vh; }
+        .logo { font-size: 80px; margin-bottom: 25px; letter-spacing: -2px; color: var(--logo-b); transition: color 0.3s; }
+        .logo .red { color: var(--logo-r); } .logo .yellow { color: var(--logo-y); } .logo .green { color: var(--logo-g); }
+        .search-box { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 24px; padding: 10px 20px; margin: 0 auto 30px auto; width: 80%; max-width: 580px; transition: box-shadow 0.2s, background-color 0.3s; background-color: var(--bg-color); }
+        .search-box:hover, .search-box:focus-within { box-shadow: 0 1px 6px var(--search-shadow); border-color: transparent; }
+        .search-icon { color: var(--icon-color); margin-right: 10px; font-size: 18px; }
+        .search-input { border: none; outline: none; width: 100%; font-size: 16px; background-color: transparent; color: var(--text-color); }
+        .search-input::placeholder { color: var(--icon-color); }
+        .buttons button { background-color: var(--btn-bg); border: 1px solid var(--btn-bg); border-radius: 4px; color: var(--text-color); font-size: 14px; margin: 0 5px; padding: 10px 20px; cursor: pointer; transition: background-color 0.2s; }
+        .buttons button:hover { background-color: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-color); }
+    </style>
+</head>
+<body>
+
+    <header class="favorites-bar">
+        <form id="translate-form" class="translate-box">
+            <span style="font-size: 14px;">🌐</span>
+            <input type="text" name="text" class="translate-input" placeholder="Google翻訳..." required>
+        </form>
+        
+        <!-- ▼ 変更：ご提示いただいたコードに合わせて、HTMLフォルダ選択ボタンを刷新しました ▼ -->
+        <button class="action-btn" onclick="selectHtmlFolder()" style="color: #34a853;">📁 HTMLフォルダーを選択</button>
+
+        <input type="file" id="url-folder-input" webkitdirectory directory style="display: none;">
+        <button class="action-btn" onclick="document.getElementById('url-folder-input').click()">📁 URLを追加</button>
+        
+        <button class="action-btn" onclick="clearFavorites()" style="color: var(--logo-r);">🗑 リセット</button>
+        
+        <div class="right-tools">
+            <button class="action-btn" onclick="addShortcut()">＋ 右に追加</button>
+            <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
+        </div>
+    </header>
+
+    <aside class="left-launcher">
+        <div class="launcher-content" id="launcher-content"></div>
+    </aside>
+
+    <main class="container">
+        <h1 class="logo">
+            <span class="red">まさ検索</span>
+        </h1>
+        <form id="search-form">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" name="q" class="search-input" placeholder="まさ検索" required autocomplete="off" autofocus>
+            </div>
+            <div class="buttons">
+                <button type="submit">まさ検索</button>
+            </div>
+        </form>
+    </main>
+
+    <aside class="sidebar">
+        <div class="shortcuts-container" id="shortcut-list"></div>
+    </aside>
+
+    <script>
+        function openInBackground(url) {
+            const newTab = window.open(url, '_blank');
+            if (newTab) window.focus();
+        }
+
+        function extractCleanName(rawName) {
+            if (!rawName) return '';
+            let str = String(rawName);
+            try { str = decodeURIComponent(str); } catch(e) {}
+            
+            str = str.replace(/<[^>]*>/g, '');
+            str = str.replace(/(?:alt|title|src|href|class|id|style)\s*=\s*["'][^"']*["']/gi, '');
+            str = str.replace(/(?:alt|title|src|href|class|id|style)\s*=\s*\S+/gi, '');
+            
+            if (str.includes('/') || str.includes('\\')) {
+                const parts = str.split(/[/\\]/);
+                str = parts[parts.length - 1];
+            }
+            
+            str = str.split('?')[0].split('#')[0].split('=')[0];
+            str = str.replace(/["'<>]/g, '');
+            return str.replace(/\.(html|htm|url|webloc|php|asp|jsp)$/i, '').trim();
+        }
+
+        document.getElementById('search-form').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const query = this.q.value;
+            if(query) openInBackground('https://www.google.com/search?q=' + encodeURIComponent(query));
+        });
+
+        document.getElementById('translate-form').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const text = this.text.value;
+            if(text) openInBackground('https://translate.google.co.jp/?sl=auto&tl=ja&text=' + encodeURIComponent(text) + '&op=translate');
+        });
+
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && link.getAttribute('target') === '_blank' && !link.classList.contains('html-file-link')) {
+                e.preventDefault(); 
+                openInBackground(link.href);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFavorites();
+            renderShortcuts();
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            themeToggleBtn.innerText = currentTheme === 'dark' ? '☀️' : '🌙';
+
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('myTheme', newTheme);
+                themeToggleBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
+            });
+        });
+
+        // ==========================================
+        // ▼ ご提示いただいたHTML読み込み処理（File System Access API） ▼
+        // ==========================================
+        
+        let htmlFolderHandleName = "";
+        let htmlFileHandles = {};
+
+        async function selectHtmlFolder() {
+            try {
+                // フォルダー選択
+                const directory = await window.showDirectoryPicker();
+                htmlFolderHandleName = directory.name;
+                htmlFileHandles = {}; 
+
+                let count = 0;
+                // フォルダー内部を取得
+                for await (const entry of directory.values()) {
+                    if (entry.kind !== "file") continue;
+                    // HTMLのみ
+                    if (!entry.name.toLowerCase().endsWith(".html") && !entry.name.toLowerCase().endsWith(".htm")) continue;
+                    
+                    htmlFileHandles[entry.name] = entry;
+                    count++;
+                }
+
+                if (count > 0) {
+                    renderFavorites();
+                } else {
+                    alert("HTMLファイルが見つかりませんでした。");
+                }
+            } catch (error) {
+                console.log("フォルダ選択がキャンセルされました", error);
+            }
+        }
+
+        // HTML表示（新しいタブで開く）
+        async function openHTML(entry) {
+            try {
+                const file = await entry.getFile();
+                const url = URL.createObjectURL(file);
+                window.open(url, '_blank');
+            } catch (error) {
+                alert("ファイルを開けませんでした。");
+            }
+        }
+
+
+        // ==========================================
+        // ▼ 従来のURLショートカット読み込み処理 ▼
+        // ==========================================
+        document.getElementById('url-folder-input').addEventListener('change', async function(e) {
+            const files = e.target.files;
+            if (files.length === 0) return;
+
+            let existingDataStr = localStorage.getItem('myFolderFavoritesTree');
+            let treeData = existingDataStr ? JSON.parse(existingDataStr) : { folders: {} };
+            if (!treeData.folders) treeData.folders = {}; 
+
+            let addedCount = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.name.toLowerCase().endsWith('.url') || file.name.toLowerCase().endsWith('.webloc')) {
+                    const text = await file.text();
+                    let url = '';
+                    
+                    const urlMatchWin = text.match(/URL=(.+)/i);
+                    if (urlMatchWin) url = urlMatchWin[1].trim();
+                    else {
+                        const urlMatchMac = text.match(/<string>(https?:\/\/[^<]+)<\/string>/i);
+                        if (urlMatchMac) url = urlMatchMac[1].trim();
+                    }
+
+                    if (url) {
+                        const cleanName = extractCleanName(file.name);
+                        const parts = (file.webkitRelativePath || file.name).split('/');
+                        let colName = 'URLリスト';
+                        if (parts.length >= 2) {
+                            colName = extractCleanName(parts[parts.length - 2]); 
+                        }
+
+                        if (!treeData.folders[colName]) treeData.folders[colName] = [];
+                        const isExist = treeData.folders[colName].some(item => item.url === url);
+                        if (!isExist) {
+                            treeData.folders[colName].push({ name: cleanName, url: url });
+                            addedCount++;
+                        }
+                    }
+                }
+            }
+
+            if (addedCount > 0) {
+                localStorage.setItem('myFolderFavoritesTree', JSON.stringify(treeData));
+                renderFavorites();
+                alert(`${addedCount} 件のURLショートカットを追加しました！`);
+            } else {
+                alert(`ショートカットファイルが見つかりませんでした。`);
+            }
+            e.target.value = '';
+        });
+
+        // 描画処理（HTMLファイルハンドル ＋ 永続化されたURLリスト）
+        function renderFavorites() {
+            const content = document.getElementById('launcher-content');
+            content.innerHTML = ''; 
+            
+            let count = 0;
+
+            // ① HTMLファイル（メモリ上のハンドル）を描画
+            if (Object.keys(htmlFileHandles).length > 0) {
+                count++;
+                const col = document.createElement('div');
+                col.className = 'folder-col';
+                
+                const header = document.createElement('div');
+                header.className = 'folder-title';
+                header.innerHTML = `📁 <span class="title-text">${extractCleanName(htmlFolderHandleName)}</span>`;
+                col.appendChild(header);
+
+                for (const [name, entry] of Object.entries(htmlFileHandles)) {
+                    const a = document.createElement('a');
+                    a.className = 'dock-btn html-file-link';
+                    a.href = '#';
+                    a.onclick = function(e) {
+                        e.preventDefault();
+                        openHTML(entry); // ご提示いただいた関数を呼び出す
+                    };
+                    
+                    const iconWrapper = document.createElement('div');
+                    iconWrapper.className = 'icon-wrapper';
+                    
+                    const img = document.createElement('img');
+                    img.alt = '';
+                    img.onerror = function() { this.style.display = 'none'; };
+                    img.src = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa0a6"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>';
+
+                    iconWrapper.appendChild(img);
+
+                    const span = document.createElement('span');
+                    span.className = 'text';
+                    span.textContent = extractCleanName(name);
+
+                    a.appendChild(iconWrapper);
+                    a.appendChild(span);
+                    col.appendChild(a);
+                }
+                content.appendChild(col);
+            }
+
+            // ② URLショートカット（LocalStorage）を描画
+            const dataStr = localStorage.getItem('myFolderFavoritesTree');
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                
+                function createColumn(title, items) {
+                    if (!items || items.length === 0) return;
+                    count++;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'folder-col';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'folder-title';
+                    header.innerHTML = `📁 <span class="title-text">${extractCleanName(title)}</span>`;
+                    col.appendChild(header);
+
+                    items.forEach(fav => {
+                        const a = document.createElement('a');
+                        a.className = 'dock-btn';
+                        a.href = fav.url;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        
+                        const iconWrapper = document.createElement('div');
+                        iconWrapper.className = 'icon-wrapper';
+                        
+                        const img = document.createElement('img');
+                        img.alt = '';
+                        img.onerror = function() { this.style.display = 'none'; };
+
+                        // URL用のファビコン
+                        img.src = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
+                        iconWrapper.appendChild(img);
+
+                        const span = document.createElement('span');
+                        span.className = 'text';
+                        span.textContent = extractCleanName(fav.name);
+
+                        a.appendChild(iconWrapper);
+                        a.appendChild(span);
+                        col.appendChild(a);
+                    });
+                    content.appendChild(col);
+                }
+
+                if (data.folders) {
+                    for (const folderName in data.folders) {
+                        createColumn(folderName, data.folders[folderName]);
+                    }
+                }
+            }
+
+            if (count === 0) {
+                content.innerHTML = '<div class="folder-col"><div class="folder-title">📁</div></div>';
+            }
+        }
+
+        function clearFavorites() {
+            if(confirm("左側に読み込んだリストをすべて消去してリセットしますか？\n（※メモリ上のHTMLフォルダリストもクリアされます）")) {
+                localStorage.removeItem('myFolderFavoritesTree');
+                htmlFileHandles = {};
+                renderFavorites();
+            }
+        }
+
+        function renderShortcuts() {
+            const container = document.getElementById('shortcut-list');
+            container.innerHTML = ''; 
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+
+            shortcuts.forEach((sc, index) => {
+                const a = document.createElement('a');
+                a.className = 'shortcut';
+                a.href = sc.url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                
+                const iconWrapper = document.createElement('div');
+                iconWrapper.className = 'shortcut-icon';
+                
+                const img = document.createElement('img');
+                img.alt = '';
+                img.src = `https://www.google.com/s2/favicons?domain=${sc.url}&sz=64`;
+                img.onerror = function() { this.style.display = 'none'; };
+                
+                iconWrapper.appendChild(img);
+
+                const span = document.createElement('span');
+                span.className = 'text';
+                span.textContent = extractCleanName(sc.name);
+
+                const delBtn = document.createElement('div');
+                delBtn.className = 'delete-btn';
+                delBtn.textContent = '×';
+                delBtn.title = '削除';
+                delBtn.onclick = function(e) { deleteShortcut(e, index); };
+
+                a.appendChild(iconWrapper);
+                a.appendChild(span);
+                a.appendChild(delBtn);
+                container.appendChild(a);
+            });
+        }
+
+        function deleteShortcut(event, index) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (confirm("このショートカットを削除しますか？")) {
+                let shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+                shortcuts.splice(index, 1);
+                localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+                renderShortcuts();
+            }
+        }
+
+        function addShortcut() {
+            const name = prompt("ショートカットの名前を入力:\n（例: Yahoo!ニュース）");
+            if (!name) return;
+            let url = prompt("URLを入力:\n（例: https://news.yahoo.co.jp）");
+            if (!url) return;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+
+            const shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+            shortcuts.push({ name: extractCleanName(name), url: url });
+            localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+            renderShortcuts();
+        }
+    </script>
+</body>
+</html>

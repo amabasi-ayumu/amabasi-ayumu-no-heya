@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SB3 to JSON Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.5em;
+            color: #333;
+        }
+        #output {
+            width: 100%;
+            height: 300px;
+            margin-top: 15px;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+        }
+        .controls {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>SB3からJSONを取得</h1>
+    <p>`.sb3` ファイルを選択してください。中の `project.json` を抽出します。</p>
+    
+    <div class="controls">
+        <input type="file" id="fileInput" accept=".sb3">
+    </div>
+
+    <div class="controls">
+        <button id="downloadBtn" disabled>JSONをダウンロード</button>
+    </div>
+
+    <h3>JSON プレビュー</h3>
+    <textarea id="output" readonly placeholder="ここにJSONの内容が表示されます..."></textarea>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const outputArea = document.getElementById('output');
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    let extractedJsonContent = "";
+    let extractedFileName = "project.json";
+
+    // ファイルが選択されたときの処理
+    fileInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        // JSZipを使用してファイルを読み込む
+        JSZip.loadAsync(file).then(function(zip) {
+            // ZIP内のファイル一覧から拡張子が .json のものを探す
+            const jsonFileNames = Object.keys(zip.files).filter(name => name.endsWith('.json'));
+
+            if (jsonFileNames.length > 0) {
+                // 通常は 'project.json' のみ
+                const jsonFileName = jsonFileNames[0];
+                
+                // ファイルの内容を文字列として非同期で取得
+                zip.files[jsonFileName].async("string").then(function(content) {
+                    extractedJsonContent = content;
+                    extractedFileName = jsonFileName;
+                    
+                    // プレビュー領域に整形して表示
+                    try {
+                        const jsonObj = JSON.parse(content);
+                        outputArea.value = JSON.stringify(jsonObj, null, 2);
+                    } catch (e) {
+                        // パースできない場合はそのまま表示
+                        outputArea.value = content;
+                    }
+                    
+                    // ダウンロードボタンを有効化
+                    downloadBtn.disabled = false;
+                });
+            } else {
+                outputArea.value = "";
+                downloadBtn.disabled = true;
+                alert("選択されたファイル内にJSONファイルが見つかりませんでした。");
+            }
+        }).catch(function(err) {
+            console.error("ファイルの読み込みエラー:", err);
+            alert("ファイルの解析に失敗しました。正しいsb3ファイルか確認してください。");
+            outputArea.value = "";
+            downloadBtn.disabled = true;
+        });
+    });
+
+    // ダウンロードボタンが押されたときの処理
+    downloadBtn.addEventListener('click', function() {
+        if (!extractedJsonContent) return;
+
+        // Blobオブジェクトを作成してダウンロードリンクを生成
+        const blob = new Blob([extractedJsonContent], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = extractedFileName;
+        document.body.appendChild(a);
+        a.click();
+        
+        // メモリ解放と要素の削除
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+    });
+</script>
+
+</body>
+</html>

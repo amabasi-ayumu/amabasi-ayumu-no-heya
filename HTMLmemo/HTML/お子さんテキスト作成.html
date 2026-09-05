@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テキストファイル作成ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .date-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .date-group input {
+            width: 80px;
+        }
+        .name-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            flex-grow: 1;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        textarea {
+            width: 100%;
+            resize: vertical;
+        }
+        .btn-main {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .btn-main:hover { background-color: #45a049; }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            white-space: nowrap;
+        }
+        .btn-add { background-color: #2196F3; }
+        .btn-add:hover { background-color: #0b7dda; }
+        .btn-delete { background-color: #f44336; }
+        .btn-delete:hover { background-color: #da190b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>テキストファイル作成ツール</h2>
+    
+    <div class="form-group">
+        <label>日付</label>
+        <div class="date-group">
+            <input type="number" id="inputYear" required> 年
+            <input type="number" id="inputMonth" required min="1" max="12"> 月
+            <input type="number" id="inputDay" required min="1" max="31"> 日
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>お子さんの名前</label>
+        <div id="nameInputs">
+            <div class="name-group">
+                <input type="text" class="childName" placeholder="例: 太郎" required>
+            </div>
+        </div>
+        <button type="button" class="btn-small btn-add" onclick="addNameField()">＋ 名前を追加</button>
+    </div>
+
+    <div class="form-group">
+        <label for="fileContent">ファイルの内容 (任意)</label>
+        <textarea id="fileContent" rows="6" placeholder="テキストファイルに保存したい内容を入力してください"></textarea>
+    </div>
+
+    <button class="btn-main" onclick="generateFile()">ファイルを作成してダウンロード</button>
+</div>
+
+<script>
+    // ページが読み込まれたときに今日の日付をセット
+    window.onload = function() {
+        const now = new Date();
+        document.getElementById('inputYear').value = now.getFullYear();
+        document.getElementById('inputMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('inputDay').value = String(now.getDate()).padStart(2, '0');
+    };
+
+    // 名前の入力欄を追加する関数
+    function addNameField() {
+        const container = document.getElementById('nameInputs');
+        const div = document.createElement('div');
+        div.className = 'name-group';
+        div.innerHTML = `
+            <input type="text" class="childName" placeholder="例: 花子">
+            <button type="button" class="btn-small btn-delete" onclick="this.parentElement.remove()">削除</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function generateFile() {
+        // 日付の取得
+        const year = document.getElementById('inputYear').value;
+        const month = document.getElementById('inputMonth').value.padStart(2, '0');
+        const day = document.getElementById('inputDay').value.padStart(2, '0');
+        
+        // 複数ある名前の入力欄から、空欄を除外して配列として取得
+        const nameInputs = document.querySelectorAll('.childName');
+        const names = Array.from(nameInputs)
+                           .map(input => input.value.trim())
+                           .filter(name => name !== "");
+        
+        // 必須項目のチェック
+        if (!year || !month || !day || names.length === 0) {
+            alert('日付と、少なくとも1つのお子さんの名前を入力してください。');
+            return;
+        }
+
+        // 名前をアンダースコア(_)でつなぐ
+        const childNameString = names.join('_');
+
+        // ファイル名を生成
+        const fileName = `${year}_${month}_${day}_${childNameString}.txt`;
+        const content = document.getElementById('fileContent').value;
+
+        // ダウンロード処理
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+</script>
+
+</body>
+</html>

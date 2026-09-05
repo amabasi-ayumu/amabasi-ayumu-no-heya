@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>URLコピーボタン</title>
+<style>
+  /* ボタンのデザイン（お好みで変更可能です） */
+  .copy-btn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  .copy-btn:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+<body>
+
+  <p>ボタンを押すとZoomのURLをコピーします。</p>
+  
+  <button class="copy-btn" id="copyButton" onclick="copyUrl()">URLをコピーする</button>
+
+  <script>
+    function copyUrl() {
+      // コピーさせたいURL
+      const url = "https://litalico.zoom.us/j/91328460305?pwd=VVZ2M3VEdWYvd3BWTGxSOXN6eWN2QT09";
+
+      // クリップボードにテキストをコピーするAPI
+      navigator.clipboard.writeText(url).then(() => {
+        // コピー成功時の処理（ボタンの文字と色を変える）
+        const button = document.getElementById('copyButton');
+        button.textContent = "コピーしました！";
+        button.style.backgroundColor = "#28a745"; // 成功を示す緑色
+
+        // 2秒後に元のボタンに戻す
+        setTimeout(() => {
+          button.textContent = "URLをコピーする";
+          button.style.backgroundColor = "#007bff";
+        }, 2000);
+      }).catch(err => {
+        // コピー失敗時の処理
+        console.error("クリップボードへのコピーに失敗しました:", err);
+        alert("コピーに失敗しました。");
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity 6: Input System 設定ガイド</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #16a085;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .step {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 5px solid #ffecb5;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unity 6: Input System 設定ガイド</h1>
+    <p>Unity 6における新しい「Input System」の導入と基本的な設定方法を解説します。従来のInput Managerからの移行や新規プロジェクトでの利用に役立ててください。</p>
+
+    <div class="step">
+        <h2>ステップ 1: パッケージのインストール</h2>
+        <p>新しいInput Systemはパッケージとして提供されているため、Package Managerからインストールする必要があります。</p>
+        <ol>
+            <li>Unityエディターの上部メニューから <strong>Window > Package Manager</strong> を開きます。</li>
+            <li>左上のドロップダウンを <strong>Packages: Unity Registry</strong> に変更します。</li>
+            <li>検索窓に <code>Input System</code> と入力します。</li>
+            <li>リストから「Input System」を選択し、右下の <strong>Install</strong> ボタンをクリックします。</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h2>ステップ 2: 有効化と再起動</h2>
+        <p>インストールが完了すると、バックエンドを切り替えるかどうかの警告ダイアログが表示される場合があります。</p>
+        <div class="note">
+            <strong>注意:</strong> 「Yes」をクリックするとエディターが再起動し、新しいInput Systemが有効になります。
+        </div>
+        <p>手動で設定を変更する場合は以下の手順を踏みます：</p>
+        <ol>
+            <li><strong>Edit > Project Settings</strong> を開きます。</li>
+            <li>左側のメニューから <strong>Player</strong> を選択します。</li>
+            <li><strong>Other Settings</strong> を展開します。</li>
+            <li>下の方にスクロールし、<strong>Active Input Handling</strong> を見つけます。</li>
+            <li>ドロップダウンから <code>Input System Package (New)</code> または <code>Both</code> (新旧両方使う場合) を選択します。</li>
+            <li>変更後、エディターを再起動します。</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h2>ステップ 3: Input Action アセットの作成</h2>
+        <p>入力を管理するためのアセットを作成します。</p>
+        <ol>
+            <li>Projectウィンドウで右クリックし、<strong>Create > Input Actions</strong> を選択します。</li>
+            <li>作成されたアセットに任意の名前（例: <code>PlayerControls</code>）を付けます。</li>
+            <li>アセットをダブルクリックして設定ウィンドウを開き、Action Map（例: Player）やAction（例: Move, Jump）を追加・設定します。</li>
+            <li>設定が終わったら、ウィンドウ上部の <strong>Save Asset</strong> をクリックします。</li>
+        </ol>
+        <p>※必要に応じて、Inspectorウィンドウで「Generate C# Class」にチェックを入れ、Applyを押すことでスクリプトから簡単にアクセスできるC#クラスを生成できます。</p>
+    </div>
+
+    <div class="step">
+        <h2>ステップ 4: スクリプトでの利用例</h2>
+        <p>生成したC#クラスを使った基本的なコード例です。</p>
+<pre><code>using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class PlayerController : MonoBehaviour
+{
+    private PlayerControls controls;
+
+    private void Awake()
+    {
+        // インスタンスの生成
+        controls = new PlayerControls();
+
+        // Jumpアクションのコールバック登録
+        controls.Player.Jump.performed += ctx => Jump();
+    }
+
+    private void OnEnable()
+    {
+        controls.Enable();
+    }
+
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
+
+    private void Update()
+    {
+        // Moveアクションの入力値を取得
+        Vector2 moveInput = controls.Player.Move.ReadValue&lt;Vector2&gt;();
+        Debug.Log($"Move Input: {moveInput}");
+    }
+
+    private void Jump()
+    {
+        Debug.Log("Jumped!");
+    }
+}
+</code></pre>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住所入力フォーム</title>
+    <style>
+        /* 簡単な見た目の調整（不要な場合は削除してください） */
+        body { font-family: sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; max-width: 400px; padding: 8px; box-sizing: border-box; }
+        input[type="submit"] { padding: 10px 20px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        input[type="submit"]:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h2>住所入力・送信フォーム</h2>
+
+    <form action="mailto:your-email@example.com" method="post" enctype="text/plain">
+        
+        <div class="form-group">
+            <label for="postal_code">郵便番号（必須）</label>
+            <input type="text" id="postal_code" name="郵便番号" placeholder="例: 105-0011" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prefecture">都道府県（必須）</label>
+            <input type="text" id="prefecture" name="都道府県" placeholder="例: 東京都" required>
+        </div>
+
+        <div class="form-group">
+            <label for="city">市区町村（必須）</label>
+            <input type="text" id="city" name="市区町村" placeholder="例: 港区芝公園" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address_details">番地・建物名・部屋番号</label>
+            <input type="text" id="address_details" name="番地・建物名" placeholder="例: 4-2-8 東京タワービル1F">
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="メールソフトを起動して送信">
+        </div>
+
+    </form>
+
+</body>
+</html>

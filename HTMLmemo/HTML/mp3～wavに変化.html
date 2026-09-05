@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 to WAV 変換ツール</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            display: block;
+            margin-bottom: 20px;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        #download-link {
+            display: none;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+        }
+        #download-link:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>MP3 を WAV に変換</h1>
+    <p>MP3ファイルを選択してください。ブラウザ上で自動的に変換が開始されます。</p>
+    
+    <input type="file" id="file-input" accept=".mp3, audio/mpeg">
+    
+    <div id="status"></div>
+    <a id="download-link" href="#">変換されたWAVをダウンロード</a>
+</div>
+
+<script>
+document.getElementById('file-input').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('status');
+    const downloadLink = document.getElementById('download-link');
+    
+    statusEl.textContent = "ファイルを読み込み中...";
+    downloadLink.style.display = 'none';
+
+    const reader = new FileReader();
+
+    // ファイル読み込み完了時の処理
+    reader.onload = function(e) {
+        const arrayBuffer = e.target.result;
+        statusEl.textContent = "音声をデコード中...";
+        
+        // Web Audio APIのコンテキストを作成
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // MP3データをデコード
+        audioContext.decodeAudioData(arrayBuffer, function(audioBuffer) {
+            statusEl.textContent = "WAVへエンコード中...";
+            
+            // AudioBufferをWAV形式のBlobに変換
+            const wavBlob = audioBufferToWav(audioBuffer);
+            
+            // ダウンロードリンクの生成
+            const url = URL.createObjectURL(wavBlob);
+            downloadLink.href = url;
+            downloadLink.download = file.name.replace(/\.[^/.]+$/, "") + ".wav";
+            
+            statusEl.textContent = "変換完了！";
+            downloadLink.style.display = 'inline-block';
+        }, function(err) {
+            statusEl.textContent = "デコードエラー: " + err;
+        });
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+// AudioBufferをWAVフォーマット（16bit PCM）に変換する関数
+function audioBufferToWav(buffer) {
+    const numOfChan = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const length = buffer.length * numOfChan * 2; // 16bit = 2bytes
+    const wavBuffer = new ArrayBuffer(44 + length);
+    const view = new DataView(wavBuffer);
+
+    // チャンネルデータをインターリーブ（左右チャンネルを交互に配置）
+    const channels = [];
+    for (let i = 0; i < numOfChan; i++) {
+        channels.push(buffer.getChannelData(i));
+    }
+    
+    let offset = 0;
+    const interleaved = new Float32Array(buffer.length * numOfChan);
+    for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numOfChan; channel++) {
+            interleaved[offset++] = channels[channel][i];
+        }
+    }
+
+    // 文字列をDataViewに書き込むヘルパー関数
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    }
+
+    // WAVヘッダーの書き込み
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + length, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // format chunk size
+    view.setUint16(20, 1, true); // format (1 = PCM)
+    view.setUint16(22, numOfChan, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numOfChan * 2, true); // byte rate
+    view.setUint16(32, numOfChan * 2, true); // block align
+    view.setUint16(34, 16, true); // bits per sample
+    writeString(view, 36, 'data');
+    view.setUint32(40, length, true);
+
+    // PCMデータの書き込み (Float32をInt16に変換)
+    let dataOffset = 44;
+    for (let i = 0; i < interleaved.length; i++, dataOffset += 2) {
+        let s = Math.max(-1, Math.min(1, interleaved[i]));
+        view.setInt16(dataOffset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+
+    return new Blob([view], { type: 'audio/wav' });
+}
+</script>
+
+</body>
+</html>
