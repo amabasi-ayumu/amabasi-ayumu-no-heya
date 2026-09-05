@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天橋　歩の検索</title>
+    <title>まさ検索</title>
     
     <script>
         const savedTheme = localStorage.getItem('myTheme') || 
@@ -38,7 +38,7 @@
         .favorites-bar {
             position: fixed; top: 0; left: 0; right: 0; min-height: 45px;
             background-color: var(--bar-bg); border-bottom: 1px solid var(--border-color);
-            display: flex; align-items: center; padding: 5px 15px; z-index: 300; gap: 5px; transition: background-color 0.3s;
+            display: flex; align-items: center; padding: 5px 15px; z-index: 100; gap: 5px; transition: background-color 0.3s;
             flex-wrap: wrap;
         }
         
@@ -51,7 +51,7 @@
         .translate-input { border: none; outline: none; background: transparent; color: var(--text-color); font-size: 13px; width: 120px; margin-left: 6px; }
         .translate-input::placeholder { color: var(--icon-color); }
 
-        .action-btn { background: transparent; border: none; color: var(--logo-b); font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: background-color 0.2s; white-space: nowrap; }
+        .action-btn { background: transparent; border: none; color: var(--logo-b); font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 12px; border-radius: 16px; transition: background-color 0.2s; }
         .action-btn:hover { background-color: var(--hover-bg); }
         .right-tools { margin-left: auto; display: flex; align-items: center; gap: 5px; }
         .theme-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 8px; border-radius: 50%; transition: background-color 0.2s; color: var(--text-color); }
@@ -66,7 +66,7 @@
             z-index: 200; 
             overflow: hidden;
             box-shadow: none;
-            transition: box-shadow 0.2s, width 0.2s ease;
+            transition: box-shadow 0.2s;
         }
         
         .left-launcher:hover { 
@@ -90,7 +90,7 @@
             transition: width 0.2s ease, min-width 0.2s ease;
         }
 
-        .folder-col:hover, .folder-col:focus-within, .folder-col.active {
+        .folder-col:hover {
             width: auto; min-width: 220px; max-width: 320px;
             background-color: rgba(0, 0, 0, 0.02);
         }
@@ -104,19 +104,19 @@
             text-align: center;
             word-break: break-word;
         }
-        .folder-col:hover .folder-title, .folder-col:focus-within .folder-title, .folder-col.active .folder-title {
+        .folder-col:hover .folder-title {
             text-align: left;
             padding: 0 15px 10px 15px;
         }
         .folder-title .title-text { display: none; }
-        .folder-col:hover .folder-title .title-text, .folder-col:focus-within .folder-title .title-text, .folder-col.active .folder-title .title-text { display: inline; }
+        .folder-col:hover .folder-title .title-text { display: inline; }
 
         .dock-btn {
             display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; text-decoration: none;
             background-color: transparent; border: none; cursor: pointer; transition: background-color 0.15s; color: var(--text-color); font-size: 13px;
             box-sizing: border-box;
         }
-        .folder-col:hover .dock-btn, .folder-col:focus-within .dock-btn, .folder-col.active .dock-btn {
+        .folder-col:hover .dock-btn {
             justify-content: flex-start;
         }
         .dock-btn:hover { background-color: var(--hover-bg); }
@@ -128,7 +128,7 @@
             display: none;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; flex-grow: 1; min-width: 0; 
         }
-        .folder-col:hover .dock-btn span.text, .folder-col:focus-within .dock-btn span.text, .folder-col.active .dock-btn span.text {
+        .folder-col:hover .dock-btn span.text {
             display: inline-block;
         }
 
@@ -139,9 +139,8 @@
             border-bottom: 1px solid var(--border-color); border-bottom-left-radius: 16px;
             display: flex; flex-direction: column; align-items: flex-start; padding-top: 10px; padding-bottom: 20px; z-index: 200;
             overflow-x: hidden; overflow-y: hidden;
-            transition: width 0.2s ease;
         }
-        .sidebar:hover, .sidebar:focus-within, .sidebar.active { width: 240px; box-shadow: -4px 4px 16px var(--shadow-color); overflow-y: auto; }
+        .sidebar:hover { width: 240px; box-shadow: -4px 4px 16px var(--shadow-color); overflow-y: auto; }
         .sidebar::-webkit-scrollbar { width: 8px; }
         .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
         .shortcuts-container { width: 100%; display: flex; flex-direction: column; }
@@ -155,7 +154,7 @@
         .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
         
         .shortcut span.text { display: none; }
-        .sidebar:hover .shortcut span.text, .sidebar:focus-within .shortcut span.text, .sidebar.active .shortcut span.text { display: inline; } 
+        .sidebar:hover .shortcut span.text { display: inline; } 
 
         .delete-btn {
             position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; background-color: var(--logo-r); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.2s, background-color 0.2s;
@@ -164,66 +163,16 @@
         .sidebar:hover .shortcut:hover .delete-btn { opacity: 1; pointer-events: auto; }
 
         /* ===== 中央検索 ===== */
-        .container { text-align: center; width: 100%; max-width: 600px; margin-top: -5vh; }
-        .logo { font-size: 80px; margin-bottom: 25px; letter-spacing: -2px; color: var(--logo-b); transition: color 0.3s, font-size 0.3s; }
+        .container { text-align: center; width: 100%; max-width: 600px; margin-top: -10vh; }
+        .logo { font-size: 80px; margin-bottom: 25px; letter-spacing: -2px; color: var(--logo-b); transition: color 0.3s; }
         .logo .red { color: var(--logo-r); } .logo .yellow { color: var(--logo-y); } .logo .green { color: var(--logo-g); }
-        .search-box { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 24px; padding: 10px 20px; margin: 0 auto 20px auto; width: 80%; max-width: 580px; transition: box-shadow 0.2s, background-color 0.3s; background-color: var(--bg-color); }
+        .search-box { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 24px; padding: 10px 20px; margin: 0 auto 30px auto; width: 80%; max-width: 580px; transition: box-shadow 0.2s, background-color 0.3s; background-color: var(--bg-color); }
         .search-box:hover, .search-box:focus-within { box-shadow: 0 1px 6px var(--search-shadow); border-color: transparent; }
         .search-icon { color: var(--icon-color); margin-right: 10px; font-size: 18px; }
         .search-input { border: none; outline: none; width: 100%; font-size: 16px; background-color: transparent; color: var(--text-color); }
         .search-input::placeholder { color: var(--icon-color); }
         .buttons button { background-color: var(--btn-bg); border: 1px solid var(--btn-bg); border-radius: 4px; color: var(--text-color); font-size: 14px; margin: 0 5px; padding: 10px 20px; cursor: pointer; transition: background-color 0.2s; }
         .buttons button:hover { background-color: var(--hover-bg); border: 1px solid var(--border-color); color: var(--text-color); }
-
-        /* ===== モバイル最適化（画面幅 768px 以下） ===== */
-        @media (max-width: 768px) {
-            body {
-                padding-left: 15px;
-                padding-right: 15px;
-                padding-top: 105px;
-            }
-            .favorites-bar {
-                padding: 4px 8px;
-                min-height: 40px;
-                justify-content: space-between;
-            }
-            .translate-box {
-                padding: 2px 8px;
-                margin-right: 2px;
-            }
-            .translate-input {
-                width: 80px;
-                font-size: 12px;
-            }
-            .action-btn {
-                font-size: 11px;
-                padding: 4px 8px;
-            }
-            .logo {
-                font-size: 52px;
-                margin-bottom: 15px;
-            }
-            .search-box {
-                width: 90%;
-                padding: 8px 14px;
-            }
-            .search-input {
-                font-size: 14px;
-            }
-            .left-launcher {
-                top: 95px;
-                height: 55vh;
-                max-width: 85vw;
-            }
-            .sidebar {
-                top: 95px;
-                height: 55vh;
-            }
-            .folder-col:hover, .folder-col:focus-within, .folder-col.active {
-                min-width: 180px;
-                max-width: 70vw;
-            }
-        }
     </style>
 </head>
 <body>
@@ -231,43 +180,43 @@
     <header class="favorites-bar">
         <form id="translate-form" class="translate-box">
             <span style="font-size: 14px;">🌐</span>
-            <input type="text" name="text" class="translate-input" placeholder="翻訳..." required>
+            <input type="text" name="text" class="translate-input" placeholder="Google翻訳..." required>
         </form>
         
-        <input type="file" id="html-folder-input" webkitdirectory directory style="display: none;">
-        <button class="action-btn" onclick="document.getElementById('html-folder-input').click()" style="color: #34a853;">📄 HTML</button>
+        <!-- ▼ 変更：ご提示いただいたコードに合わせて、HTMLフォルダ選択ボタンを刷新しました ▼ -->
+        <button class="action-btn" onclick="selectHtmlFolder()" style="color: #34a853;">📁 HTMLフォルダーを選択</button>
 
         <input type="file" id="url-folder-input" webkitdirectory directory style="display: none;">
-        <button class="action-btn" onclick="document.getElementById('url-folder-input').click()">📁 URL</button>
+        <button class="action-btn" onclick="document.getElementById('url-folder-input').click()">📁 URLを追加</button>
         
         <button class="action-btn" onclick="clearFavorites()" style="color: var(--logo-r);">🗑 リセット</button>
         
         <div class="right-tools">
-            <button class="action-btn" onclick="addShortcut()">＋ 右</button>
+            <button class="action-btn" onclick="addShortcut()">＋ 右に追加</button>
             <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
         </div>
     </header>
 
-    <aside class="left-launcher" id="left-launcher">
+    <aside class="left-launcher">
         <div class="launcher-content" id="launcher-content"></div>
     </aside>
 
     <main class="container">
         <h1 class="logo">
-           <span class="red">天橋　歩の検索</span>
+            <span class="red">まさ検索</span>
         </h1>
         <form id="search-form">
             <div class="search-box">
                 <span class="search-icon">🔍</span>
-                <input type="text" name="q" class="search-input" placeholder="天橋　歩の検索" required autocomplete="off" autofocus>
+                <input type="text" name="q" class="search-input" placeholder="まさ検索" required autocomplete="off" autofocus>
             </div>
             <div class="buttons">
-                <button type="submit">天橋　歩の検索</button>
+                <button type="submit">まさ検索</button>
             </div>
         </form>
     </main>
 
-    <aside class="sidebar" id="right-sidebar">
+    <aside class="sidebar">
         <div class="shortcuts-container" id="shortcut-list"></div>
     </aside>
 
@@ -283,12 +232,16 @@
             try { str = decodeURIComponent(str); } catch(e) {}
             
             str = str.replace(/<[^>]*>/g, '');
+            str = str.replace(/(?:alt|title|src|href|class|id|style)\s*=\s*["'][^"']*["']/gi, '');
+            str = str.replace(/(?:alt|title|src|href|class|id|style)\s*=\s*\S+/gi, '');
             
             if (str.includes('/') || str.includes('\\')) {
                 const parts = str.split(/[/\\]/);
                 str = parts[parts.length - 1];
             }
             
+            str = str.split('?')[0].split('#')[0].split('=')[0];
+            str = str.replace(/["'<>]/g, '');
             return str.replace(/\.(html|htm|url|webloc|php|asp|jsp)$/i, '').trim();
         }
 
@@ -306,17 +259,9 @@
 
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
-            if (link && link.getAttribute('target') === '_blank') {
+            if (link && link.getAttribute('target') === '_blank' && !link.classList.contains('html-file-link')) {
                 e.preventDefault(); 
                 openInBackground(link.href);
-            }
-
-            // モバイル用：外部タップ時にアクティブ状態を解除
-            if (!e.target.closest('.left-launcher')) {
-                document.querySelectorAll('.folder-col').forEach(col => col.classList.remove('active'));
-            }
-            if (!e.target.closest('.sidebar')) {
-                document.getElementById('right-sidebar').classList.remove('active');
             }
         });
 
@@ -337,49 +282,56 @@
             });
         });
 
-        document.getElementById('html-folder-input').addEventListener('change', async function(e) {
-            const files = e.target.files;
-            if (files.length === 0) return;
+        // ==========================================
+        // ▼ ご提示いただいたHTML読み込み処理（File System Access API） ▼
+        // ==========================================
+        
+        let htmlFolderHandleName = "";
+        let htmlFileHandles = {};
 
-            let existingDataStr = localStorage.getItem('myFolderFavoritesTree');
-            let treeData = existingDataStr ? JSON.parse(existingDataStr) : { folders: {} };
-            if (!treeData.folders) treeData.folders = {}; 
+        async function selectHtmlFolder() {
+            try {
+                // フォルダー選択
+                const directory = await window.showDirectoryPicker();
+                htmlFolderHandleName = directory.name;
+                htmlFileHandles = {}; 
 
-            let addedCount = 0;
-            const basePath = "file:///C:/Users/takamasakudo/Desktop/";
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                if (file.name.toLowerCase().endsWith('.html') || file.name.toLowerCase().endsWith('.htm')) {
-                    const cleanName = extractCleanName(file.name);
-                    const relativePath = file.webkitRelativePath || file.name;
-                    const url = basePath + relativePath;
-
-                    const parts = relativePath.split('/');
-                    let colName = 'HTMLリスト';
-                    if (parts.length >= 2) {
-                        colName = extractCleanName(parts[parts.length - 2]); 
-                    }
-
-                    if (!treeData.folders[colName]) treeData.folders[colName] = [];
-                    const isExist = treeData.folders[colName].some(item => item.url === url);
-                    if (!isExist) {
-                        treeData.folders[colName].push({ name: cleanName, url: url });
-                        addedCount++;
-                    }
+                let count = 0;
+                // フォルダー内部を取得
+                for await (const entry of directory.values()) {
+                    if (entry.kind !== "file") continue;
+                    // HTMLのみ
+                    if (!entry.name.toLowerCase().endsWith(".html") && !entry.name.toLowerCase().endsWith(".htm")) continue;
+                    
+                    htmlFileHandles[entry.name] = entry;
+                    count++;
                 }
-            }
 
-            if (addedCount > 0) {
-                localStorage.setItem('myFolderFavoritesTree', JSON.stringify(treeData));
-                renderFavorites();
-                alert(`${addedCount} 件のHTMLファイルを追加しました！`);
-            } else {
-                alert(`HTMLファイルが見つかりませんでした。`);
+                if (count > 0) {
+                    renderFavorites();
+                } else {
+                    alert("HTMLファイルが見つかりませんでした。");
+                }
+            } catch (error) {
+                console.log("フォルダ選択がキャンセルされました", error);
             }
-            e.target.value = '';
-        });
+        }
 
+        // HTML表示（新しいタブで開く）
+        async function openHTML(entry) {
+            try {
+                const file = await entry.getFile();
+                const url = URL.createObjectURL(file);
+                window.open(url, '_blank');
+            } catch (error) {
+                alert("ファイルを開けませんでした。");
+            }
+        }
+
+
+        // ==========================================
+        // ▼ 従来のURLショートカット読み込み処理 ▼
+        // ==========================================
         document.getElementById('url-folder-input').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (files.length === 0) return;
@@ -431,42 +383,32 @@
             e.target.value = '';
         });
 
+        // 描画処理（HTMLファイルハンドル ＋ 永続化されたURLリスト）
         function renderFavorites() {
             const content = document.getElementById('launcher-content');
             content.innerHTML = ''; 
-            const dataStr = localStorage.getItem('myFolderFavoritesTree');
-            if (!dataStr) {
-                content.innerHTML = '<div class="folder-col"><div class="folder-title">📁</div></div>';
-                return;
-            }
-            const data = JSON.parse(dataStr);
+            
             let count = 0;
 
-            function createColumn(title, items) {
-                if (!items || items.length === 0) return;
+            // ① HTMLファイル（メモリ上のハンドル）を描画
+            if (Object.keys(htmlFileHandles).length > 0) {
                 count++;
-                
                 const col = document.createElement('div');
                 col.className = 'folder-col';
-                col.addEventListener('click', function(e) {
-                    if (e.target.closest('a')) return;
-                    document.querySelectorAll('.folder-col').forEach(c => {
-                        if (c !== col) c.classList.remove('active');
-                    });
-                    col.classList.toggle('active');
-                });
                 
                 const header = document.createElement('div');
                 header.className = 'folder-title';
-                header.innerHTML = `📁 <span class="title-text">${extractCleanName(title)}</span>`;
+                header.innerHTML = `📁 <span class="title-text">${extractCleanName(htmlFolderHandleName)}</span>`;
                 col.appendChild(header);
 
-                items.forEach(fav => {
+                for (const [name, entry] of Object.entries(htmlFileHandles)) {
                     const a = document.createElement('a');
-                    a.className = 'dock-btn';
-                    a.href = fav.url;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
+                    a.className = 'dock-btn html-file-link';
+                    a.href = '#';
+                    a.onclick = function(e) {
+                        e.preventDefault();
+                        openHTML(entry); // ご提示いただいた関数を呼び出す
+                    };
                     
                     const iconWrapper = document.createElement('div');
                     iconWrapper.className = 'icon-wrapper';
@@ -474,29 +416,71 @@
                     const img = document.createElement('img');
                     img.alt = '';
                     img.onerror = function() { this.style.display = 'none'; };
-
-                    if (fav.url.startsWith('file:///')) {
-                        img.src = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa0a6"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>';
-                    } else {
-                        img.src = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
-                    }
+                    img.src = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239aa0a6"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>';
 
                     iconWrapper.appendChild(img);
 
                     const span = document.createElement('span');
                     span.className = 'text';
-                    span.textContent = extractCleanName(fav.name);
+                    span.textContent = extractCleanName(name);
 
                     a.appendChild(iconWrapper);
                     a.appendChild(span);
                     col.appendChild(a);
-                });
+                }
                 content.appendChild(col);
             }
 
-            if (data.folders) {
-                for (const folderName in data.folders) {
-                    createColumn(folderName, data.folders[folderName]);
+            // ② URLショートカット（LocalStorage）を描画
+            const dataStr = localStorage.getItem('myFolderFavoritesTree');
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                
+                function createColumn(title, items) {
+                    if (!items || items.length === 0) return;
+                    count++;
+                    
+                    const col = document.createElement('div');
+                    col.className = 'folder-col';
+                    
+                    const header = document.createElement('div');
+                    header.className = 'folder-title';
+                    header.innerHTML = `📁 <span class="title-text">${extractCleanName(title)}</span>`;
+                    col.appendChild(header);
+
+                    items.forEach(fav => {
+                        const a = document.createElement('a');
+                        a.className = 'dock-btn';
+                        a.href = fav.url;
+                        a.target = '_blank';
+                        a.rel = 'noopener noreferrer';
+                        
+                        const iconWrapper = document.createElement('div');
+                        iconWrapper.className = 'icon-wrapper';
+                        
+                        const img = document.createElement('img');
+                        img.alt = '';
+                        img.onerror = function() { this.style.display = 'none'; };
+
+                        // URL用のファビコン
+                        img.src = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
+                        iconWrapper.appendChild(img);
+
+                        const span = document.createElement('span');
+                        span.className = 'text';
+                        span.textContent = extractCleanName(fav.name);
+
+                        a.appendChild(iconWrapper);
+                        a.appendChild(span);
+                        col.appendChild(a);
+                    });
+                    content.appendChild(col);
+                }
+
+                if (data.folders) {
+                    for (const folderName in data.folders) {
+                        createColumn(folderName, data.folders[folderName]);
+                    }
                 }
             }
 
@@ -506,8 +490,9 @@
         }
 
         function clearFavorites() {
-            if(confirm("左側に読み込んだリストをすべて消去してリセットしますか？")) {
+            if(confirm("左側に読み込んだリストをすべて消去してリセットしますか？\n（※メモリ上のHTMLフォルダリストもクリアされます）")) {
                 localStorage.removeItem('myFolderFavoritesTree');
+                htmlFileHandles = {};
                 renderFavorites();
             }
         }
