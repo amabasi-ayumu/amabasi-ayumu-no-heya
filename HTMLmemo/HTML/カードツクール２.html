@@ -316,11 +316,18 @@
                     const imgToUse = cardImages[globalIndex] || defaultImageUrl;
                     
                     if (imgToUse) {
-                        item.style.backgroundImage = `url(${imgToUse})`;
-                        item.innerText = ''; // テキストを消す
-                    } else {
-                        item.innerText = `クリックで画像設定\n(${width}x${height})`; 
-                    }
+    const img = document.createElement('img');
+
+    img.src = imgToUse;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+    img.style.display = 'block';
+
+    item.appendChild(img);
+} else {
+    item.innerText = `クリックで画像設定\n(${width}x${height})`;
+}
                     
                     pageEl.appendChild(item);
                     globalIndex++;
