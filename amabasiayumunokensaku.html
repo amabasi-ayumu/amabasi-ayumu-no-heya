@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天橋　歩の検索</title>
+    <title>まさ検索</title>
     
     <script>
         const savedTheme = localStorage.getItem('myTheme') || 
@@ -146,10 +146,15 @@
         .shortcuts-container { width: 100%; display: flex; flex-direction: column; }
 
         .shortcut {
-            position: relative; display: flex; align-items: center; justify-content: flex-start; width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: pointer; 
-            transition: background-color 0.15s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
+            position: relative; display: flex; align-items: center; justify-content: flex-start; width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: grab; 
+            transition: background-color 0.15s, border-top 0.15s, opacity 0.15s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
+            box-sizing: border-box;
         }
+        .shortcut:active { cursor: grabbing; }
         .shortcut:hover { background-color: var(--hover-bg); }
+        .shortcut.dragging { opacity: 0.3; }
+        .shortcut.drag-over { border-top: 2px solid var(--logo-b); background-color: var(--hover-bg); }
+
         .shortcut-icon { width: 60px; height: 44px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size: 18px; color: var(--icon-color); }
         .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
         
@@ -183,7 +188,6 @@
             <input type="text" name="text" class="translate-input" placeholder="Google翻訳..." required>
         </form>
         
-        <!-- ▼ 変更：ご提示いただいたコードに合わせて、HTMLフォルダ選択ボタンを刷新しました ▼ -->
         <button class="action-btn" onclick="selectHtmlFolder()" style="color: #34a853;">📁 HTMLフォルダーを選択</button>
 
         <input type="file" id="url-folder-input" webkitdirectory directory style="display: none;">
@@ -203,7 +207,7 @@
 
     <main class="container">
         <h1 class="logo">
-            <span class="red">天橋　歩の検索</span>
+            <span class="red">まさ検索</span>
         </h1>
         <form id="search-form">
             <div class="search-box">
@@ -211,7 +215,7 @@
                 <input type="text" name="q" class="search-input" placeholder="まさ検索" required autocomplete="off" autofocus>
             </div>
             <div class="buttons">
-                <button type="submit">天橋　歩検索</button>
+                <button type="submit">まさ検索</button>
             </div>
         </form>
     </main>
@@ -282,25 +286,19 @@
             });
         });
 
-        // ==========================================
-        // ▼ ご提示いただいたHTML読み込み処理（File System Access API） ▼
-        // ==========================================
-        
+        // HTML読み込み処理（File System Access API）
         let htmlFolderHandleName = "";
         let htmlFileHandles = {};
 
         async function selectHtmlFolder() {
             try {
-                // フォルダー選択
                 const directory = await window.showDirectoryPicker();
                 htmlFolderHandleName = directory.name;
                 htmlFileHandles = {}; 
 
                 let count = 0;
-                // フォルダー内部を取得
                 for await (const entry of directory.values()) {
                     if (entry.kind !== "file") continue;
-                    // HTMLのみ
                     if (!entry.name.toLowerCase().endsWith(".html") && !entry.name.toLowerCase().endsWith(".htm")) continue;
                     
                     htmlFileHandles[entry.name] = entry;
@@ -317,7 +315,6 @@
             }
         }
 
-        // HTML表示（新しいタブで開く）
         async function openHTML(entry) {
             try {
                 const file = await entry.getFile();
@@ -328,10 +325,7 @@
             }
         }
 
-
-        // ==========================================
-        // ▼ 従来のURLショートカット読み込み処理 ▼
-        // ==========================================
+        // URLショートカット読み込み処理
         document.getElementById('url-folder-input').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (files.length === 0) return;
@@ -383,14 +377,12 @@
             e.target.value = '';
         });
 
-        // 描画処理（HTMLファイルハンドル ＋ 永続化されたURLリスト）
         function renderFavorites() {
             const content = document.getElementById('launcher-content');
             content.innerHTML = ''; 
             
             let count = 0;
 
-            // ① HTMLファイル（メモリ上のハンドル）を描画
             if (Object.keys(htmlFileHandles).length > 0) {
                 count++;
                 const col = document.createElement('div');
@@ -407,7 +399,7 @@
                     a.href = '#';
                     a.onclick = function(e) {
                         e.preventDefault();
-                        openHTML(entry); // ご提示いただいた関数を呼び出す
+                        openHTML(entry);
                     };
                     
                     const iconWrapper = document.createElement('div');
@@ -431,7 +423,6 @@
                 content.appendChild(col);
             }
 
-            // ② URLショートカット（LocalStorage）を描画
             const dataStr = localStorage.getItem('myFolderFavoritesTree');
             if (dataStr) {
                 const data = JSON.parse(dataStr);
@@ -462,7 +453,6 @@
                         img.alt = '';
                         img.onerror = function() { this.style.display = 'none'; };
 
-                        // URL用のファビコン
                         img.src = `https://www.google.com/s2/favicons?domain=${fav.url}&sz=32`;
                         iconWrapper.appendChild(img);
 
@@ -497,6 +487,11 @@
             }
         }
 
+        // ==========================================
+        // ▼ 右側サイドバー：ドラッグ＆ドロップ並べ替え処理 ▼
+        // ==========================================
+        let draggedIndex = null;
+
         function renderShortcuts() {
             const container = document.getElementById('shortcut-list');
             container.innerHTML = ''; 
@@ -508,7 +503,47 @@
                 a.href = sc.url;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
-                
+                a.draggable = true;
+
+                // ドラッグ開始
+                a.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', index);
+                    a.classList.add('dragging');
+                });
+
+                // ドラッグ要素が上に入った時
+                a.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                a.addEventListener('dragenter', (e) => {
+                    e.preventDefault();
+                    a.classList.add('drag-over');
+                });
+
+                a.addEventListener('dragleave', () => {
+                    a.classList.remove('drag-over');
+                });
+
+                // ドロップ時
+                a.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    a.classList.remove('drag-over');
+                    if (draggedIndex !== null && draggedIndex !== index) {
+                        moveShortcut(draggedIndex, index);
+                    }
+                });
+
+                // ドラッグ終了
+                a.addEventListener('dragend', () => {
+                    a.classList.remove('dragging');
+                    document.querySelectorAll('.shortcut').forEach(el => el.classList.remove('drag-over'));
+                    draggedIndex = null;
+                });
+
                 const iconWrapper = document.createElement('div');
                 iconWrapper.className = 'shortcut-icon';
                 
@@ -534,6 +569,14 @@
                 a.appendChild(delBtn);
                 container.appendChild(a);
             });
+        }
+
+        function moveShortcut(fromIndex, toIndex) {
+            let shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+            const targetItem = shortcuts.splice(fromIndex, 1)[0];
+            shortcuts.splice(toIndex, 0, targetItem);
+            localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
+            renderShortcuts();
         }
 
         function deleteShortcut(event, index) {
