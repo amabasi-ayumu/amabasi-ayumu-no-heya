@@ -140,32 +140,40 @@
             display: flex; flex-direction: column; align-items: flex-start; padding-top: 10px; padding-bottom: 20px; z-index: 200;
             overflow-x: hidden; overflow-y: hidden;
         }
-        .sidebar:hover { width: 240px; box-shadow: -4px 4px 16px var(--shadow-color); overflow-y: auto; }
+        .sidebar:hover { width: 260px; box-shadow: -4px 4px 16px var(--shadow-color); overflow-y: auto; }
         .sidebar::-webkit-scrollbar { width: 8px; }
         .sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
         .shortcuts-container { width: 100%; display: flex; flex-direction: column; }
 
         .shortcut {
-            position: relative; display: flex; align-items: center; justify-content: flex-start; width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: grab; 
-            transition: background-color 0.15s, border-top 0.15s, opacity 0.15s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
+            position: relative; display: flex; align-items: center; justify-content: flex-start; width: 100%; height: 44px; text-decoration: none; background-color: transparent; border: none; cursor: pointer; 
+            transition: background-color 0.15s; color: var(--text-color); font-size: 14px; white-space: nowrap; overflow: hidden; flex-shrink: 0; padding: 0; text-align: left;
             box-sizing: border-box;
         }
-        .shortcut:active { cursor: grabbing; }
         .shortcut:hover { background-color: var(--hover-bg); }
-        .shortcut.dragging { opacity: 0.3; }
-        .shortcut.drag-over { border-top: 2px solid var(--logo-b); background-color: var(--hover-bg); }
 
         .shortcut-icon { width: 60px; height: 44px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size: 18px; color: var(--icon-color); }
         .shortcut-icon img { width: 24px; height: 24px; border-radius: 50%; object-fit: contain; }
         
-        .shortcut span.text { display: none; }
+        .shortcut span.text { display: none; padding-right: 80px; }
         .sidebar:hover .shortcut span.text { display: inline; } 
 
-        .delete-btn {
-            position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; background-color: var(--logo-r); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.2s, background-color 0.2s;
+        /* 操作ボタン群（▲ ▼ ×） */
+        .shortcut-controls {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 3px;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
         }
-        .delete-btn:hover { background-color: #d93025; }
-        .sidebar:hover .shortcut:hover .delete-btn { opacity: 1; pointer-events: auto; }
+        .sidebar:hover .shortcut:hover .shortcut-controls { opacity: 1; pointer-events: auto; }
+
+        .ctrl-btn {
+            width: 22px; height: 22px; background-color: var(--bg-color); color: var(--text-color);
+            border: 1px solid var(--border-color); border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 9px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .ctrl-btn:hover { background-color: var(--hover-bg); border-color: var(--logo-b); color: var(--logo-b); }
+        .ctrl-btn.del-btn:hover { background-color: var(--logo-r); border-color: var(--logo-r); color: white; }
+        .ctrl-btn.disabled { visibility: hidden; pointer-events: none; }
 
         /* ===== 中央検索 ===== */
         .container { text-align: center; width: 100%; max-width: 600px; margin-top: -10vh; }
@@ -488,10 +496,8 @@
         }
 
         // ==========================================
-        // ▼ 右側サイドバー：ドラッグ＆ドロップ並べ替え処理 ▼
+        // ▼ 右側サイドバー：矢印ボタン上下並べ替え処理 ▼
         // ==========================================
-        let draggedIndex = null;
-
         function renderShortcuts() {
             const container = document.getElementById('shortcut-list');
             container.innerHTML = ''; 
@@ -503,46 +509,6 @@
                 a.href = sc.url;
                 a.target = '_blank';
                 a.rel = 'noopener noreferrer';
-                a.draggable = true;
-
-                // ドラッグ開始
-                a.addEventListener('dragstart', (e) => {
-                    draggedIndex = index;
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', index);
-                    a.classList.add('dragging');
-                });
-
-                // ドラッグ要素が上に入った時
-                a.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                });
-
-                a.addEventListener('dragenter', (e) => {
-                    e.preventDefault();
-                    a.classList.add('drag-over');
-                });
-
-                a.addEventListener('dragleave', () => {
-                    a.classList.remove('drag-over');
-                });
-
-                // ドロップ時
-                a.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    a.classList.remove('drag-over');
-                    if (draggedIndex !== null && draggedIndex !== index) {
-                        moveShortcut(draggedIndex, index);
-                    }
-                });
-
-                // ドラッグ終了
-                a.addEventListener('dragend', () => {
-                    a.classList.remove('dragging');
-                    document.querySelectorAll('.shortcut').forEach(el => el.classList.remove('drag-over'));
-                    draggedIndex = null;
-                });
 
                 const iconWrapper = document.createElement('div');
                 iconWrapper.className = 'shortcut-icon';
@@ -558,23 +524,53 @@
                 span.className = 'text';
                 span.textContent = extractCleanName(sc.name);
 
+                // 操作ボタン群（▲ ▼ ×）
+                const ctrlContainer = document.createElement('div');
+                ctrlContainer.className = 'shortcut-controls';
+
+                // 上へ移動ボタン
+                const upBtn = document.createElement('div');
+                upBtn.className = 'ctrl-btn' + (index === 0 ? ' disabled' : '');
+                upBtn.textContent = '▲';
+                upBtn.title = '上へ移動';
+                upBtn.onclick = function(e) { moveShortcut(e, index, -1); };
+
+                // 下へ移動ボタン
+                const downBtn = document.createElement('div');
+                downBtn.className = 'ctrl-btn' + (index === shortcuts.length - 1 ? ' disabled' : '');
+                downBtn.textContent = '▼';
+                downBtn.title = '下へ移動';
+                downBtn.onclick = function(e) { moveShortcut(e, index, 1); };
+
+                // 削除ボタン
                 const delBtn = document.createElement('div');
-                delBtn.className = 'delete-btn';
+                delBtn.className = 'ctrl-btn del-btn';
                 delBtn.textContent = '×';
                 delBtn.title = '削除';
                 delBtn.onclick = function(e) { deleteShortcut(e, index); };
 
+                ctrlContainer.appendChild(upBtn);
+                ctrlContainer.appendChild(downBtn);
+                ctrlContainer.appendChild(delBtn);
+
                 a.appendChild(iconWrapper);
                 a.appendChild(span);
-                a.appendChild(delBtn);
+                a.appendChild(ctrlContainer);
                 container.appendChild(a);
             });
         }
 
-        function moveShortcut(fromIndex, toIndex) {
+        // 上下位置変更
+        function moveShortcut(event, index, direction) {
+            event.preventDefault();
+            event.stopPropagation();
             let shortcuts = JSON.parse(localStorage.getItem('myShortcuts')) || [];
-            const targetItem = shortcuts.splice(fromIndex, 1)[0];
-            shortcuts.splice(toIndex, 0, targetItem);
+            const newIndex = index + direction;
+            
+            if (newIndex < 0 || newIndex >= shortcuts.length) return;
+            
+            const targetItem = shortcuts.splice(index, 1)[0];
+            shortcuts.splice(newIndex, 0, targetItem);
             localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
             renderShortcuts();
         }
