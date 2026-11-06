@@ -1,0 +1,167 @@
+﻿分類,記号,名称,意味,詳細,コード例,読み方
+記号,",",カンマ,と、追加、境目、区切り,引数や変数宣言の要素を区切る。,"new Vector3(x,y,z);  int a,b,c;",Vector3にxとyとzを渡す。int型のaとbとcを宣言する。
+記号,;,セミコロン,文の終わり,多くのC#文の終端を示す。,int iCount = 3;,iCountに3を代入して文を終える。
+記号,.,ピリオド,所属先のメンバーを指定,オブジェクトや型のメンバーにアクセスする。,sText.Length,sTextのLengthを取得する。
+記号,(),丸かっこ,引数、条件、式のまとまり,メソッド呼び出しや条件式の範囲を示す。,Math.Abs(-3),MathのAbsにマイナス3を渡す。
+記号,{},波かっこ,処理や定義の範囲,クラスやメソッド、制御構文などのブロックを示す。,if (bReady) { Run(); },bReadyが真ならRunを実行する。
+記号,[],角かっこ,配列の要素指定,配列の宣言やインデックス指定に使用する。,aScores[0],aScoresの先頭の要素を参照する。
+記号,=,イコール,代入,右辺の値を左辺へ代入する。,iCount = 5;,iCountに5を代入する。
+記号,+,プラス,加算、文字列連結,数値を足す。また文字列の連結にも使用する。,iTotal = 2 + 3;,2と3を足してiTotalに代入する。
+記号,-,マイナス,減算、符号反転,数値を引く。また単項演算子として符号を反転する。,iLeft = 5 - 2;,5から2を引いてiLeftに代入する。
+記号,*,アスタリスク,乗算,数値同士を掛け合わせる。,iArea = 3 * 4;,3かける4をiAreaに代入する。
+記号,/,スラッシュ,除算,左辺を右辺で割る。整数同士なら整数除算となる。,iResult = 7 / 2;,7を2で整数除算し、3を代入する。
+記号,%,パーセント,剰余,割り算の余りを求める。,iRest = 7 % 2;,7を2で割った余りの1を代入する。
+記号,==,二重イコール,等しいか比較,左右の値が等しいか判定する。,iCount == 3,iCountが3と等しいか調べる。
+記号,!=,エクスクラメーション・イコール,等しくないか比較,左右の値が異なるか判定する。,iCount != 3,iCountが3と異なるか調べる。
+記号,>,大なり,より大きい,左辺が右辺より大きいか調べる。,iCount > 3,iCountが3より大きいか調べる。
+記号,<,小なり,より小さい,左辺が右辺より小さいか調べる。,iCount < 3,iCountが3より小さいか調べる。
+記号,>=,大なりイコール,以上,左辺が右辺以上か調べる。,iCount >= 3,iCountが3以上か調べる。
+記号,<=,小なりイコール,以下,左辺が右辺以下か調べる。,iCount <= 3,iCountが3以下か調べる。
+記号,&&,アンパサンド2つ,論理AND,左右がともにtrueならtrueとなる。,bReady && bActive,bReadyとbActiveが両方真か調べる。
+記号,||,縦棒2つ,論理OR,左右のどちらかがtrueならtrueとなる。,bReady || bActive,bReadyまたはbActiveが真か調べる。
+記号,!,エクスクラメーション,論理否定,真偽値を反転する。,!bReady,bReadyが真ではないか調べる。
+記号,??,クエスチョン2つ,Null合体,左辺がnullなら右辺を使用する。,"sName ?? ""未設定""",sNameがnullなら未設定という文字列を使用する。
+記号,?.,クエスチョン・ピリオド,Null条件アクセス,左辺がnullならメンバーアクセスを行わない。,obj?.Name,objがnullでなければNameを取得する。
+記号,=>,イコール・大なり,ラムダ式、式本体,ラムダ式の引数と処理本体を区切る。,x => x * 2,xを受け取り、xを2倍した値を返す。
+記号,^,キャレット,末尾からのインデックス,インデックスで末尾を基準に位置を指定する。,aScores[^1],aScoresの末尾の要素を参照する。
+記号,..,ピリオド2つ,範囲,開始位置から終了位置の手前までの範囲を指定する。,aScores[1..3],aScoresのインデックス1から2までを取り出す。
+記号,:,コロン,継承、ラベル、条件演算子の区切り,使用する構文によって意味が変わる。,class Child : Parent {},ChildクラスがParentクラスを継承する。
+記号,?:,クエスチョン・コロン,条件演算子,条件が真なら前者、偽なら後者を選ぶ。,bReady ? 1 : 0,bReadyが真なら1、偽なら0を選ぶ。
+記号,++,プラス2つ,1増やす,変数の値を1増やす。,iCount++;,iCountを1増やす。
+記号,--,マイナス2つ,1減らす,変数の値を1減らす。,iCount--;,iCountを1減らす。
+キーワード,class,class,クラスを宣言,参照型の定義,class Player { },Playerというクラスを宣言する。
+キーワード,struct,struct,構造体を宣言,値型の定義,struct Point { public int X; },構造体を宣言する。
+キーワード,interface,interface,インターフェースを宣言,契約を定義,interface IRun { void Run(); },インターフェースを宣言する。
+キーワード,enum,enum,列挙型を宣言,名前付き定数,"enum State { Idle, Run }",列挙型を宣言する。
+キーワード,namespace,namespace,名前空間を宣言,名前の衝突を整理,namespace Game.Core;,このコードでは「名前空間を宣言」というnamespaceの役割を使う。
+キーワード,using,using,名前空間の取り込み等,using文や別名にも使用,using System;,指定した名前空間またはリソースを利用する。
+キーワード,new,new,インスタンス生成等,new修飾子にも使用,var p = new Player();,pに新しいPlayerの値を設定する。
+キーワード,return,return,処理を終了して値を返す,voidでもreturn可能,return 10;,式の結果を呼び出し元へ返す。
+キーワード,if,if,条件分岐,bool条件,if (ok) Run();,条件が真のときだけ処理する。
+キーワード,else,else,条件不成立時の分岐,ifと組で使用,else Stop();,このコードでは「条件不成立時の分岐」というelseの役割を使う。
+キーワード,switch,switch,複数候補の分岐,switch式もある,switch (state) { case 0: break; },値に応じて処理を分岐する。
+キーワード,for,for,回数制御の反復,初期化・条件・更新,for (int i=0;i<3;i++) { },指定した条件で繰り返し処理する。
+キーワード,foreach,foreach,列挙可能な要素を反復,IEnumerableなど,foreach (var x in items) { },要素を1つずつ取り出して処理する。
+キーワード,while,while,条件が真の間反復,無限ループに注意,while (ready) { },このコードでは「条件が真の間反復」というwhileの役割を使う。
+キーワード,break,break,ループやswitchを抜ける,最も内側の対象を終了,break;,このコードでは「ループやswitchを抜ける」というbreakの役割を使う。
+キーワード,continue,continue,次の反復へ進む,ループで使用,continue;,このコードでは「次の反復へ進む」というcontinueの役割を使う。
+キーワード,try,try,例外が起こり得る処理を囲む,catch/finallyと組み合わせ,try { Run(); } catch { },このコードでは「例外が起こり得る処理を囲む」というtryの役割を使う。
+キーワード,throw,throw,例外を送出,throw;は再送出,throw new Exception();,throw例外を発生させる。
+キーワード,async,async,非同期メソッド等を指定,awaitと併用,async Task RunAsync() { await Work(); },このコードでは「非同期メソッド等を指定」というasyncの役割を使う。
+キーワード,await,await,非同期操作の完了を待つ,スレッドのブロックとは異なる,await Task.Delay(100);,このコードでは「非同期操作の完了を待つ」というawaitの役割を使う。
+キーワード,yield,yield,反復要素を逐次返す,イテレーターで使用,yield return 1;,このコードでは「反復要素を逐次返す」というyieldの役割を使う。
+演算子,+,+,加算・文字列連結,型により動作が変わる,int n = 2 + 3;,2 + 3の結果をnに代入する。
+演算子,-,-,減算・符号反転,単項演算子にもなる,int n = 5 - 2;,5 - 2の結果をnに代入する。
+演算子,*,*,乗算,unsafeではポインター記法にも使用,int n = 2 * 3;,2 * 3の結果をnに代入する。
+演算子,/,/,除算,整数同士なら整数除算,int n = 5 / 2;,5 / 2の結果をnに代入する。
+演算子,%,%,剰余,負数の符号に注意,int n = 5 % 2;,5 % 2の結果をnに代入する。
+演算子,==,==,等価比較,型によって等価の定義が異なる,bool b = x == y;,x == yの結果をbに代入する。
+演算子,!=,!=,非等価比較,不一致,bool b = x != y;,x != yの結果をbに代入する。
+演算子,&&,&&,条件付き論理AND,短絡評価,if (a && b) { },条件が真のときだけ処理する。
+演算子,||,||,条件付き論理OR,短絡評価,if (a || b) { },条件が真のときだけ処理する。
+演算子,!,!,論理否定・null免除,式末尾の!はnull許容解析への指定,bool b = !ready;,!readyの結果をbに代入する。
+演算子,??,??,null合体,左辺がnullなら右辺,"string s = name ?? ""未設定"";","name ?? ""未設定""の結果をsに代入する。"
+演算子,??=,??=,null合体代入,nullの場合のみ代入,"name ??= ""未設定"";",このコードでは「null合体代入」という??=の役割を使う。
+演算子,?.,?.,null条件付きメンバーアクセス,nullならアクセスしない,int? n = obj?.Count;,obj?.Countの結果をnに代入する。
+演算子,=>,=>,ラムダ演算子・式形式メンバー,switch式の腕にも使う,"Func<int,int> f = x => x * 2;",x => x * 2の結果をfに代入する。
+演算子,^,^,ビットXOR・末尾からのIndex,a[^1]は末尾要素,int n = 5 ^ 3;,5 ^ 3の結果をnに代入する。
+演算子,..,..,範囲演算子,終端は含まない,var sub = a[1..3];,a[1..3]の結果をsubに代入する。
+演算子,<<,<<,左ビットシフト,ビットを左へ,int n = 1 << 3;,1 << 3の結果をnに代入する。
+演算子,>>,>>,右ビットシフト,符号付きの挙動に注意,int n = 8 >> 1;,8 >> 1の結果をnに代入する。
+演算子,is,is,型・パターン検査,パターン変数を宣言可能,if (obj is string s) { },条件が真のときだけ処理する。
+演算子,as,as,参照/nullable型への安全な変換,変換できなければnull,var s = obj as string;,obj as stringの結果をsに代入する。
+データ型,bool,bool,真偽値,true/false,bool ok = true;,okに真（true）を設定する。
+データ型,byte,byte,8ビット符号なし整数,0～255,byte n = 255;,255の結果をnに代入する。
+データ型,sbyte,sbyte,8ビット符号付き整数,-128～127,sbyte n = -1;,-1の結果をnに代入する。
+データ型,short,short,16ビット符号付き整数,Int16,short n = 100;,100の結果をnに代入する。
+データ型,ushort,ushort,16ビット符号なし整数,UInt16,ushort n = 100;,100の結果をnに代入する。
+データ型,int,int,32ビット符号付き整数,Int32,int n = 123;,123の結果をnに代入する。
+データ型,uint,uint,32ビット符号なし整数,UInt32,uint n = 123U;,123Uの結果をnに代入する。
+データ型,long,long,64ビット符号付き整数,Int64,long n = 123L;,123Lの結果をnに代入する。
+データ型,ulong,ulong,64ビット符号なし整数,UInt64,ulong n = 123UL;,123ULの結果をnに代入する。
+データ型,float,float,単精度浮動小数点,約6～9桁の精度,float n = 1.5f;,1.5fの結果をnに代入する。
+データ型,double,double,倍精度浮動小数点,約15～17桁の精度,double n = 1.5;,1.5の結果をnに代入する。
+データ型,decimal,decimal,10進高精度数値,金額計算に向く,decimal price = 1.5m;,1.5mの結果をpriceに代入する。
+データ型,char,char,UTF-16コード単位,Unicode文字全体とは限らない,char c = 'A';,'A'の結果をcに代入する。
+データ型,string,string,文字列,不変の参照型,"string s = ""ABC"";","""ABC""の結果をsに代入する。"
+データ型,object,object,全型の基底型,値型の代入はボックス化,object o = 10;,10の結果をoに代入する。
+データ型,dynamic,dynamic,動的バインディング,実行時にメンバー解決,dynamic x = 1;,1の結果をxに代入する。
+データ型,nint,nint,ネイティブサイズ符号付き整数,環境に応じ32/64ビット,nint n = 10;,10の結果をnに代入する。
+データ型,nuint,nuint,ネイティブサイズ符号なし整数,環境に応じ32/64ビット,nuint n = 10;,10の結果をnに代入する。
+アクセス修飾子,public,public,どこからでもアクセス可能,型の公開API,public int Count;,publicを指定して、どこからでもアクセス可能メンバーを宣言する。
+アクセス修飾子,private,private,宣言した型の内部からアクセス,メンバーの既定アクセス,private int count;,privateを指定して、宣言した型の内部からアクセスメンバーを宣言する。
+アクセス修飾子,protected,protected,宣言型と派生型からアクセス,継承時に利用,protected void Run() { },protectedを指定して、宣言型と派生型からアクセスメンバーを宣言する。
+アクセス修飾子,internal,internal,同一アセンブリ内からアクセス,アセンブリ境界,internal class Helper { },internalを指定して、同一アセンブリ内からアクセスメンバーを宣言する。
+アクセス修飾子,protected internal,protected internal,同一アセンブリまたは派生型,OR条件,protected internal int Value;,protected internalを指定して、同一アセンブリまたは派生型メンバーを宣言する。
+アクセス修飾子,private protected,private protected,同一アセンブリ内の派生型,AND条件,private protected int Value;,private protectedを指定して、同一アセンブリ内の派生型メンバーを宣言する。
+アクセス修飾子,file,file,同一ソースファイル内に限定,トップレベル型に使用,file class LocalHelper { },このコードでは「同一ソースファイル内に限定」というfileの役割を使う。
+修飾子,static,static,インスタンスではなく型に属する,静的メンバー,static int Count;,staticを指定して、インスタンスではなく型に属するメンバーを宣言する。
+修飾子,readonly,readonly,フィールドの再代入を制限,宣言時かコンストラクターで設定,readonly int id;,readonlyを指定して、フィールドの再代入を制限メンバーを宣言する。
+修飾子,const,const,コンパイル時定数,宣言時に値を指定,const int Max = 10;,10の結果をMaxに代入する。
+修飾子,abstract,abstract,抽象型・抽象メンバー,直接インスタンス化不可,abstract class Shape { },このコードでは「抽象型・抽象メンバー」というabstractの役割を使う。
+修飾子,sealed,sealed,継承・オーバーライドを禁止,sealed overrideもある,sealed class Final { },このコードでは「継承・オーバーライドを禁止」というsealedの役割を使う。
+修飾子,virtual,virtual,派生型で上書き可能,overrideで上書き,public virtual void Run() { },virtualを指定して、派生型で上書き可能メンバーを宣言する。
+修飾子,override,override,基底型の仮想メンバーを上書き,基底側の仮想宣言が必要,"public override string ToString() => ""A"";",overrideを指定して、基底型の仮想メンバーを上書きメンバーを宣言する。
+修飾子,partial,partial,型などの定義を分割,生成コードと分離,partial class Player { },このコードでは「型などの定義を分割」というpartialの役割を使う。
+修飾子,required,required,初期化を要求,オブジェクト初期化時など,public required string Name { get; init; },requiredを指定して、初期化を要求メンバーを宣言する。
+修飾子,volatile,volatile,特定のフィールドアクセス順序を制約,排他制御の代わりにはならない,private volatile bool ready;,volatileを指定して、特定のフィールドアクセス順序を制約メンバーを宣言する。
+修飾子,unsafe,unsafe,unsafeコンテキスト,コンパイラー設定が必要,unsafe { int* p = null; },null; }の結果をpに代入する。
+エスケープシーケンス,\n,\n,改行（LF）,改行コード U+000A,"""A\nB""",\nを使い、改行（LF）を文字列に含める。
+エスケープシーケンス,\r,\r,復帰（CR）,U+000D,"""A\rB""",\rを使い、復帰（CR）を文字列に含める。
+エスケープシーケンス,\t,\t,水平タブ,U+0009,"""A\tB""",\tを使い、水平タブを文字列に含める。
+エスケープシーケンス,\\,\\,バックスラッシュ,文字列内の\,"""C:\\Temp""",\\を使い、バックスラッシュを文字列に含める。
+エスケープシーケンス,"\""","\""",二重引用符,通常文字列で使用,"""Say \""Hi\""""","\""を使い、二重引用符を文字列に含める。"
+エスケープシーケンス,\',\',単一引用符,charリテラルで使用,'\'',\'を使い、単一引用符を文字列に含める。
+エスケープシーケンス,\0,\0,Null文字,U+0000,"""A\0B""",\0を使い、Null文字を文字列に含める。
+エスケープシーケンス,\a,\a,ベル,U+0007,"""\a""",\aを使い、ベルを文字列に含める。
+エスケープシーケンス,\b,\b,バックスペース,U+0008,"""\b""",\bを使い、バックスペースを文字列に含める。
+エスケープシーケンス,\f,\f,フォームフィード,U+000C,"""\f""",\fを使い、フォームフィードを文字列に含める。
+エスケープシーケンス,\v,\v,垂直タブ,U+000B,"""\v""",\vを使い、垂直タブを文字列に含める。
+エスケープシーケンス,\uXXXX,\uXXXX,4桁16進Unicodeエスケープ,UTF-16コード単位,"""\u3042""",\uXXXXを使い、4桁16進Unicodeエスケープを文字列に含める。
+エスケープシーケンス,\UXXXXXXXX,\UXXXXXXXX,8桁16進Unicodeエスケープ,Unicodeスカラー値,"""\U0001F600""",\UXXXXXXXXを使い、8桁16進Unicodeエスケープを文字列に含める。
+エスケープシーケンス,\xH...,\xH...,可変長16進エスケープ,1～4桁。後続文字に注意,"""\x41""",\xH...を使い、可変長16進エスケープを文字列に含める。
+文字列メソッド,Length,Length,文字列のUTF-16コード単位数,Unicodeの文字数と異なる場合あり,int n = text.Length;,textの長さを取得してnに入れる。
+文字列メソッド,Contains,Contains,指定文字列を含むか,大文字小文字の扱いに注意,"bool b = text.Contains(""abc"");",指定した文字列が含まれるか調べてbに入れる。
+文字列メソッド,StartsWith,StartsWith,指定文字列で始まるか,比較方式を指定可能,"bool b = text.StartsWith(""A"");",指定した文字列で始まるか調べてbに入れる。
+文字列メソッド,EndsWith,EndsWith,指定文字列で終わるか,比較方式を指定可能,"bool b = text.EndsWith(""Z"");",指定した文字列で終わるか調べてbに入れる。
+文字列メソッド,IndexOf,IndexOf,最初の出現位置を探す,未発見なら-1,"int i = text.IndexOf(""a"");","text.IndexOf(""a"")の結果をiに代入する。"
+文字列メソッド,LastIndexOf,LastIndexOf,最後の出現位置を探す,未発見なら-1,"int i = text.LastIndexOf(""a"");","text.LastIndexOf(""a"")の結果をiに代入する。"
+文字列メソッド,Substring,Substring,部分文字列を取得,範囲外で例外,"string s = text.Substring(1, 3);","text.Substring(1, 3)の結果をsに代入する。"
+文字列メソッド,Replace,Replace,一致部分を置換,元の文字列は変更されない,"string s = text.Replace(""a"", ""b"");","text.Replace(""a"", ""b"")の結果をsに代入する。"
+文字列メソッド,Split,Split,区切りで分割,空要素の扱いを指定可能,"string[] a = text.Split(',');","text.Split(',')の結果をaに代入する。"
+文字列メソッド,Trim,Trim,両端の空白等を除去,新しい文字列を返す,string s = text.Trim();,text.Trim()の結果をsに代入する。
+文字列メソッド,ToUpper,ToUpper,大文字に変換,カルチャー差に注意,string s = text.ToUpperInvariant();,text.ToUpperInvariant()の結果をsに代入する。
+文字列メソッド,ToLower,ToLower,小文字に変換,カルチャー差に注意,string s = text.ToLowerInvariant();,text.ToLowerInvariant()の結果をsに代入する。
+文字列メソッド,IsNullOrEmpty,IsNullOrEmpty,nullまたは空文字を判定,staticメソッド,bool b = string.IsNullOrEmpty(text);,string.IsNullOrEmpty(text)の結果をbに代入する。
+文字列メソッド,IsNullOrWhiteSpace,IsNullOrWhiteSpace,null/空白のみを判定,staticメソッド,bool b = string.IsNullOrWhiteSpace(text);,string.IsNullOrWhiteSpace(text)の結果をbに代入する。
+文字列メソッド,Join,Join,要素を区切り文字で結合,staticメソッド,"string s = string.Join("","", values);","string.Join("","", values)の結果をsに代入する。"
+配列・List,Length,Length,配列の要素数,配列,int n = array.Length;,arrayの要素数をnに入れる。
+配列・List,Array.Sort,Array.Sort,配列を並べ替え,元配列を変更,Array.Sort(array);,配列の要素を並べ替える。
+配列・List,Array.Reverse,Array.Reverse,配列の順序を反転,元配列を変更,Array.Reverse(array);,配列の要素の順序を逆にする。
+配列・List,Array.Copy,Array.Copy,配列をコピー,長さと型に注意,"Array.Copy(src, dst, src.Length);",このコードでは「配列をコピー」というArray.Copyの役割を使う。
+配列・List,Array.IndexOf,Array.IndexOf,要素位置を検索,未発見なら-1,"int i = Array.IndexOf(array, 3);","Array.IndexOf(array, 3)の結果をiに代入する。"
+配列・List,List.Add,List.Add,末尾に要素追加,List<T>,list.Add(10);,このコードでは「末尾に要素追加」というList.Addの役割を使う。
+配列・List,List.AddRange,List.AddRange,複数要素追加,List<T>,list.AddRange(other);,このコードでは「複数要素追加」というList.AddRangeの役割を使う。
+配列・List,List.Remove,List.Remove,一致する最初の要素を削除,戻り値は削除成功か,bool ok = list.Remove(10);,list.Remove(10)の結果をokに代入する。
+配列・List,List.RemoveAt,List.RemoveAt,指定位置の要素を削除,範囲外は例外,list.RemoveAt(0);,このコードでは「指定位置の要素を削除」というList.RemoveAtの役割を使う。
+配列・List,List.Clear,List.Clear,全要素削除,容量は必ずしも縮まない,list.Clear();,このコードでは「全要素削除」というList.Clearの役割を使う。
+配列・List,List.Contains,List.Contains,要素が存在するか,等価比較,bool ok = list.Contains(10);,指定した文字列が含まれるか調べてokに入れる。
+配列・List,List.Find,List.Find,条件に合う最初の要素,未発見なら既定値,int n = list.Find(x => x > 5);,list.Find(x => x > 5)の結果をnに代入する。
+配列・List,List.Sort,List.Sort,要素を並べ替え,元リストを変更,list.Sort();,このコードでは「要素を並べ替え」というList.Sortの役割を使う。
+配列・List,List.Count,List.Count,要素数,プロパティ,int n = list.Count;,list.Countの結果をnに代入する。
+配列・List,List.Capacity,List.Capacity,確保済み容量,Countとは異なる,int n = list.Capacity;,list.Capacityの結果をnに代入する。
+LINQ,Where,Where,条件に合う要素を抽出,遅延実行,var q = nums.Where(x => x > 0);,numsから0より大きい要素を取り出す処理を定義する。
+LINQ,Select,Select,各要素を変換,遅延実行,var q = nums.Select(x => x * 2);,numsの各要素を2倍する処理を定義する。
+LINQ,SelectMany,SelectMany,入れ子の列を平坦化,複数列を連結,var q = groups.SelectMany(x => x);,groups内の複数の要素列を1つの列にまとめる。
+LINQ,OrderBy,OrderBy,昇順で並べる,新たな列挙結果,var q = nums.OrderBy(x => x);,OrderByを使って昇順で並べる処理を行い、結果をqに入れる。
+LINQ,OrderByDescending,OrderByDescending,降順で並べる,新たな列挙結果,var q = nums.OrderByDescending(x => x);,OrderByDescendingを使って降順で並べる処理を行い、結果をqに入れる。
+LINQ,ThenBy,ThenBy,第二キーで並べる,OrderByの後に使用,var q = items.OrderBy(x => x.A).ThenBy(x => x.B);,items.OrderBy(x => x.A).ThenBy(x => x.B)の結果をqに代入する。
+LINQ,GroupBy,GroupBy,キーでグループ化,キーごとのグループ,var q = items.GroupBy(x => x.Type);,items.GroupBy(x => x.Type)の結果をqに代入する。
+LINQ,Any,Any,条件を満たす要素があるか,boolを返す,bool b = nums.Any(x => x > 0);,Anyを使って条件を満たす要素があるか処理を行い、結果をbに入れる。
+LINQ,All,All,全要素が条件を満たすか,空列ではtrue,bool b = nums.All(x => x > 0);,Allを使って全要素が条件を満たすか処理を行い、結果をbに入れる。
+LINQ,FirstOrDefault,FirstOrDefault,最初の要素または既定値,空列の扱いに注意,int n = nums.FirstOrDefault();,FirstOrDefaultを使って最初の要素または既定値処理を行い、結果をnに入れる。
+LINQ,Single,Single,要素がちょうど1件か検査,0件/複数件で例外,int n = nums.Single();,Singleを使って要素がちょうど1件か検査処理を行い、結果をnに入れる。
+LINQ,Distinct,Distinct,重複を除く,等価比較に基づく,var q = nums.Distinct();,Distinctを使って重複を除く処理を行い、結果をqに入れる。
+LINQ,Take,Take,先頭から指定数取得,遅延実行,var q = nums.Take(3);,Takeを使って先頭から指定数取得処理を行い、結果をqに入れる。
+LINQ,Skip,Skip,先頭から指定数飛ばす,遅延実行,var q = nums.Skip(3);,Skipを使って先頭から指定数飛ばす処理を行い、結果をqに入れる。
+LINQ,ToList,ToList,Listに実体化,列挙を実行,var list = nums.ToList();,ToListを使ってListに実体化処理を行い、結果をlistに入れる。
