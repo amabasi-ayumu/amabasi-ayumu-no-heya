@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# 例外一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# 例外一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "NullReferenceException", "title": "NullReferenceException", "meaning": "null参照のメンバーにアクセス", "detail": "nullチェックや?.", "example": "string? s = null; /* s.Length は例外 */", "reading": "null; /* s.Length は例外 */の結果をsに代入する。"}, {"symbol": "IndexOutOfRangeException", "title": "IndexOutOfRangeException", "meaning": "配列の添字が範囲外", "detail": "添字を検証", "example": "int[] a = new int[1]; /* a[1] */", "reading": "aに新しいint[1]; /* a[1] */の値を設定する。"}, {"symbol": "ArgumentException", "title": "ArgumentException", "meaning": "引数が不正", "detail": "引数検証", "example": "throw new ArgumentException(\"不正\");", "reading": "ArgumentException例外を発生させる。"}, {"symbol": "ArgumentNullException", "title": "ArgumentNullException", "meaning": "必須引数がnull", "detail": "nullを検証", "example": "throw new ArgumentNullException(nameof(value));", "reading": "ArgumentNullException例外を発生させる。"}, {"symbol": "ArgumentOutOfRangeException", "title": "ArgumentOutOfRangeException", "meaning": "引数が許容範囲外", "detail": "範囲検証", "example": "throw new ArgumentOutOfRangeException(nameof(index));", "reading": "ArgumentOutOfRangeException例外を発生させる。"}, {"symbol": "InvalidOperationException", "title": "InvalidOperationException", "meaning": "現在の状態では操作不可", "detail": "状態を確認", "example": "throw new InvalidOperationException();", "reading": "InvalidOperationException例外を発生させる。"}, {"symbol": "FormatException", "title": "FormatException", "meaning": "文字列の書式が不正", "detail": "TryParseを検討", "example": "int.Parse(\"abc\");", "reading": "このコードでは「文字列の書式が不正」というFormatExceptionの役割を使う。"}, {"symbol": "OverflowException", "title": "OverflowException", "meaning": "数値範囲を超える", "detail": "checkedや範囲確認", "example": "checked { int x = int.MaxValue + 1; }", "reading": "int.MaxValue + 1; }の結果をxに代入する。"}, {"symbol": "DivideByZeroException", "title": "DivideByZeroException", "meaning": "整数の0除算", "detail": "除数を確認", "example": "int zero = 0; /* 1 / zero */", "reading": "0; /* 1 / zero */の結果をzeroに代入する。"}, {"symbol": "IOException", "title": "IOException", "meaning": "入出力に失敗", "detail": "ファイルやストリームの状態", "example": "throw new IOException();", "reading": "IOException例外を発生させる。"}, {"symbol": "FileNotFoundException", "title": "FileNotFoundException", "meaning": "指定ファイルが見つからない", "detail": "パス確認", "example": "File.ReadAllText(\"missing.txt\");", "reading": "このコードでは「指定ファイルが見つからない」というFileNotFoundExceptionの役割を使う。"}, {"symbol": "UnauthorizedAccessException", "title": "UnauthorizedAccessException", "meaning": "アクセス権限がない", "detail": "権限と属性確認", "example": "// 権限のないファイルにアクセス", "reading": "このコードでは「アクセス権限がない」というUnauthorizedAccessExceptionの役割を使う。"}, {"symbol": "TaskCanceledException", "title": "TaskCanceledException", "meaning": "タスクがキャンセル", "detail": "CancellationTokenを確認", "example": "// キャンセルされたTaskをawait", "reading": "このコードでは「タスクがキャンセル」というTaskCanceledExceptionの役割を使う。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>
