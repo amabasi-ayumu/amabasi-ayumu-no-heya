@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# 辞書ビューアー</title>
+    <style>
+        /* カスタム変数 */
+        :root {
+            --print-cols: 2; /* 印刷時のデフォルト列数 */
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        
+        /* ヘッダー関連 */
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        
+        /* メインレイアウト関連 */
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        
+        /* ツールバー関連 */
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; white-space: nowrap; }
+        .btn-action { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px 16px; cursor: pointer; font-size: 1rem; white-space: nowrap; }
+        .btn-action:hover { background: #354e6e; }
+        
+        /* セレクトボックス・数値入力（印刷サイズ変更） */
+        .size-selector { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #aabbd0; }
+        .size-selector input[type="number"] { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 6px; padding: 8px; font-size: 1rem; width: 70px; text-align: center; }
+        
+        /* データがない・エラー時の表示 */
+        .message-state { text-align: center; padding: 60px 20px; color: #8fcbff; font-size: 1.1rem; border: 2px dashed #334155; border-radius: 12px; background: #152236; }
+        
+        /* カード関連 */
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; display: flex; flex-direction: column; }
+        .card-category { font-size: 0.75rem; color: #7dd3fc; border: 1px solid #3b506c; background: #1c2b42; padding: 4px 8px; border-radius: 6px; align-self: flex-start; margin-bottom: 12px; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; display: inline-block; margin-left: 10px; }
+        
+        /* コードブロック関連 */
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        
+        /* 印刷用スタイル */
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            /* 変数を使って列数（カードサイズ）を動的に変更 */
+            .cards { grid-template-columns: repeat(var(--print-cols), 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol, .card-category { color: #173e6b; border-color: #ccc; }
+            .message-state { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# 辞書ビューアー</h1>
+        <p class="header-desc">CSVファイルを読み込んで、カード形式で検索・閲覧できるツールです。</p>
+    </header>
+    
+    <main class="wrap">
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="分類・記号・名称・意味などから検索" aria-label="検索">
+            <span class="count" id="count">0 件</span>
+            
+            <label class="size-selector">
+                コピー(印刷)時の列数:
+                <input type="number" id="print-size" value="2" min="1">
+            </label>
+            
+            <button class="btn-action" onclick="downloadCSV()">ダウンロード</button>
+            <button class="btn-action" onclick="window.print()">印刷</button>
+        </div>
+        
+        <div id="message-container" class="message-state">
+            データを読み込んでいます...
+        </div>
+        
+        <section class="cards" id="cards"></section>
+    </main>
+
+    <script>
+        // ▼▼▼ ここに読み込むCSVファイルのパスを入力してください ▼▼▼
+        const csvPath = 'ここにCSVのパスを入力してください'; 
+
+        // ▼▼▼ ダウンロードする際のファイル名はこちらで指定してください ▼▼▼
+        const downloadFileName = 'dictionary_export.csv';
+
+        let data = [];
+        const cards = document.getElementById('cards');
+        const search = document.getElementById('search');
+        const count = document.getElementById('count');
+        const messageContainer = document.getElementById('message-container');
+
+        // 印刷サイズ（列数）フリー指定の適用
+        document.getElementById('print-size').addEventListener('input', (e) => {
+            // 1以上の整数になるように処理
+            let cols = parseInt(e.target.value, 10);
+            if (isNaN(cols) || cols < 1) cols = 1;
+            document.documentElement.style.setProperty('--print-cols', cols);
+        });
+
+        function esc(s) {
+            return String(s || '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function parseCSV(text) {
+            const result = [];
+            let row = [];
+            let inQuotes = false;
+            let val = "";
+            
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (c === '"') {
+                    if (inQuotes && text[i+1] === '"') { 
+                        val += '"'; i++; 
+                    } else { 
+                        inQuotes = !inQuotes; 
+                    }
+                } else if (c === ',' && !inQuotes) {
+                    row.push(val); val = "";
+                } else if (c === '\n' && !inQuotes) {
+                    row.push(val); result.push(row); row = []; val = "";
+                } else if (c === '\r' && !inQuotes) {
+                    // CRは無視
+                } else {
+                    val += c;
+                }
+            }
+            if (val || text[text.length-1] === ',') row.push(val);
+            if (row.length > 0) result.push(row);
+            return result;
+        }
+
+        function render() {
+            if (data.length === 0) {
+                cards.innerHTML = '';
+                count.textContent = '0 件';
+                return;
+            }
+
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-category">${esc(x.category)}</span>
+                    <div>
+                        <span class="card-symbol">${esc(x.symbol)}</span>
+                        <h3 class="card-title">${esc(x.title)}</h3>
+                    </div>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例 ${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+
+        // CSVダウンロード機能
+        function downloadCSV() {
+            if (data.length === 0) return;
+            
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            
+            let csvContent = "分類,記号,名称,意味,詳細,コード例,読み\n";
+            
+            filtered.forEach(row => {
+                const r = [row.category, row.symbol, row.title, row.meaning, row.detail, row.example, row.reading];
+                // セル内にカンマや改行、ダブルクォートが含まれる場合のエスケープ処理
+                const escaped = r.map(v => {
+                    let s = String(v || '');
+                    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                        s = '"' + s.replace(/"/g, '""') + '"';
+                    }
+                    return s;
+                });
+                csvContent += escaped.join(',') + "\n";
+            });
+            
+            // Excel等での文字化けを防ぐためBOMを付与
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, csvContent], { type: "text/csv;charset=utf-8;" });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            // 変数で指定したファイル名を適用
+            a.download = downloadFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function loadCSV() {
+            try {
+                const response = await fetch(csvPath);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const buffer = await response.arrayBuffer();
+                const decoder = new TextDecoder('utf-8');
+                const text = decoder.decode(buffer);
+                
+                const rows = parseCSV(text);
+                
+                if (rows.length < 2) {
+                    throw new Error('CSVにデータが見つかりません。');
+                }
+                
+                data = [];
+                for (let i = 1; i < rows.length; i++) {
+                    if (rows[i].length < 7) continue;
+                    data.push({
+                        category: rows[i][0].trim(),
+                        symbol: rows[i][1].trim(),
+                        title: rows[i][2].trim(),
+                        meaning: rows[i][3].trim(),
+                        detail: rows[i][4].trim(),
+                        example: rows[i][5].trim(),
+                        reading: rows[i][6].trim()
+                    });
+                }
+                
+                messageContainer.style.display = 'none';
+                render();
+                
+            } catch (error) {
+                console.error('CSV読み込みエラー:', error);
+                messageContainer.innerHTML = `
+                    CSVファイルの読み込みに失敗しました。<br>
+                    <small style="color:#a8bad0; display:block; margin-top:10px;">
+                        パスが正しいか、またはローカルサーバー（Live Server等）で起動しているか確認してください。<br>
+                        エラー内容: ${esc(error.message)}
+                    </small>
+                `;
+            }
+        }
+
+        search.addEventListener('input', render);
+        window.addEventListener('DOMContentLoaded', loadCSV);
+    </script>
+</body>
+</html>
