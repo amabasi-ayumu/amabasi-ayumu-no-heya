@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# 記号の意味 一覧</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        
+        /* ヘッダー関連 */
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        
+        /* メインレイアウト関連 */
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        
+        /* ツールバー関連 */
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        
+        /* カード関連（JS生成部含む） */
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        
+        /* コードブロック関連 */
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        
+        /* 印刷用スタイル */
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# 記号の意味 一覧</h1>
+        <p class="header-desc">記号・名称・意味・詳細・コード例と、その日本語での読み方をカード形式でまとめています。</p>
+    </header>
+    
+    <main class="wrap">
+        <!-- 01以降のファイル用：戻るリンクが必要な場合は以下のコメントアウトを外してください -->
+        <!-- <p><a href="index.html" class="back-link">← 一覧目次</a></p> -->
+
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="記号・名称・意味から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        
+        <section class="cards" id="cards"></section>
+    </main>
+
+    <script>
+        // ※ 01〜09のファイルを更新する場合は、この data 配列の中身をご自身のファイルのものと入れ替えてください。
+        const data = [
+            {"title": "カンマ", "symbol": ",", "meaning": "と、追加、境目、区切り", "detail": "引数や変数宣言の要素を区切る。", "example": "new Vector3(x,y,z);  int a,b,c;", "reading": "Vector3にxとyとzを渡す。int型のaとbとcを宣言する。"}, 
+            {"title": "セミコロン", "symbol": ";", "meaning": "文の終わり", "detail": "多くのC#文の終端を示す。", "example": "int iCount = 3;", "reading": "iCountに3を代入して文を終える。"}, 
+            {"title": "ピリオド", "symbol": ".", "meaning": "所属先のメンバーを指定", "detail": "オブジェクトや型のメンバーにアクセスする。", "example": "sText.Length", "reading": "sTextのLengthを取得する。"}, 
+            {"title": "丸かっこ", "symbol": "()", "meaning": "引数、条件、式のまとまり", "detail": "メソッド呼び出しや条件式の範囲を示す。", "example": "Math.Abs(-3)", "reading": "MathのAbsにマイナス3を渡す。"}, 
+            {"title": "波かっこ", "symbol": "{}", "meaning": "処理や定義の範囲", "detail": "クラスやメソッド、制御構文などのブロックを示す。", "example": "if (bReady) { Run(); }", "reading": "bReadyが真ならRunを実行する。"}, 
+            {"title": "角かっこ", "symbol": "[]", "meaning": "配列の要素指定", "detail": "配列の宣言やインデックス指定に使用する。", "example": "aScores[0]", "reading": "aScoresの先頭の要素を参照する。"}, 
+            {"title": "イコール", "symbol": "=", "meaning": "代入", "detail": "右辺の値を左辺へ代入する。", "example": "iCount = 5;", "reading": "iCountに5を代入する。"}, 
+            {"title": "プラス", "symbol": "+", "meaning": "加算、文字列連結", "detail": "数値を足す。また文字列の連結にも使用する。", "example": "iTotal = 2 + 3;", "reading": "2と3を足してiTotalに代入する。"}, 
+            {"title": "マイナス", "symbol": "-", "meaning": "減算、符号反転", "detail": "数値を引く。また単項演算子として符号を反転する。", "example": "iLeft = 5 - 2;", "reading": "5から2を引いてiLeftに代入する。"}, 
+            {"title": "アスタリスク", "symbol": "*", "meaning": "乗算", "detail": "数値同士を掛け合わせる。", "example": "iArea = 3 * 4;", "reading": "3かける4をiAreaに代入する。"}, 
+            {"title": "スラッシュ", "symbol": "/", "meaning": "除算", "detail": "左辺を右辺で割る。整数同士なら整数除算となる。", "example": "iResult = 7 / 2;", "reading": "7を2で整数除算し、3を代入する。"}, 
+            {"title": "パーセント", "symbol": "%", "meaning": "剰余", "detail": "割り算の余りを求める。", "example": "iRest = 7 % 2;", "reading": "7を2で割った余りの1を代入する。"}, 
+            {"title": "二重イコール", "symbol": "==", "meaning": "等しいか比較", "detail": "左右の値が等しいか判定する。", "example": "iCount == 3", "reading": "iCountが3と等しいか調べる。"}, 
+            {"title": "エクスクラメーション・イコール", "symbol": "!=", "meaning": "等しくないか比較", "detail": "左右の値が異なるか判定する。", "example": "iCount != 3", "reading": "iCountが3と異なるか調べる。"}, 
+            {"title": "大なり", "symbol": ">", "meaning": "より大きい", "detail": "左辺が右辺より大きいか調べる。", "example": "iCount > 3", "reading": "iCountが3より大きいか調べる。"}, 
+            {"title": "小なり", "symbol": "<", "meaning": "より小さい", "detail": "左辺が右辺より小さいか調べる。", "example": "iCount < 3", "reading": "iCountが3より小さいか調べる。"}, 
+            {"title": "大なりイコール", "symbol": ">=", "meaning": "以上", "detail": "左辺が右辺以上か調べる。", "example": "iCount >= 3", "reading": "iCountが3以上か調べる。"}, 
+            {"title": "小なりイコール", "symbol": "<=", "meaning": "以下", "detail": "左辺が右辺以下か調べる。", "example": "iCount <= 3", "reading": "iCountが3以下か調べる。"}, 
+            {"title": "アンパサンド2つ", "symbol": "&&", "meaning": "論理AND", "detail": "左右がともにtrueならtrueとなる。", "example": "bReady && bActive", "reading": "bReadyとbActiveが両方真か調べる。"}, 
+            {"title": "縦棒2つ", "symbol": "||", "meaning": "論理OR", "detail": "左右のどちらかがtrueならtrueとなる。", "example": "bReady || bActive", "reading": "bReadyまたはbActiveが真か調べる。"}, 
+            {"title": "エクスクラメーション", "symbol": "!", "meaning": "論理否定", "detail": "真偽値を反転する。", "example": "!bReady", "reading": "bReadyが真ではないか調べる。"}, 
+            {"title": "クエスチョン2つ", "symbol": "??", "meaning": "Null合体", "detail": "左辺がnullなら右辺を使用する。", "example": "sName ?? \"未設定\"", "reading": "sNameがnullなら未設定という文字列を使用する。"}, 
+            {"title": "クエスチョン・ピリオド", "symbol": "?.", "meaning": "Null条件アクセス", "detail": "左辺がnullならメンバーアクセスを行わない。", "example": "obj?.Name", "reading": "objがnullでなければNameを取得する。"}, 
+            {"title": "イコール・大なり", "symbol": "=>", "meaning": "ラムダ式、式本体", "detail": "ラムダ式の引数と処理本体を区切る。", "example": "x => x * 2", "reading": "xを受け取り、xを2倍した値を返す。"}, 
+            {"title": "キャレット", "symbol": "^", "meaning": "末尾からのインデックス", "detail": "インデックスで末尾を基準に位置を指定する。", "example": "aScores[^1]", "reading": "aScoresの末尾の要素を参照する。"}, 
+            {"title": "ピリオド2つ", "symbol": "..", "meaning": "範囲", "detail": "開始位置から終了位置の手前までの範囲を指定する。", "example": "aScores[1..3]", "reading": "aScoresのインデックス1から2までを取り出す。"}, 
+            {"title": "コロン", "symbol": ":", "meaning": "継承、ラベル、条件演算子の区切り", "detail": "使用する構文によって意味が変わる。", "example": "class Child : Parent {}", "reading": "ChildクラスがParentクラスを継承する。"}, 
+            {"title": "クエスチョン・コロン", "symbol": "?:", "meaning": "条件演算子", "detail": "条件が真なら前者、偽なら後者を選ぶ。", "example": "bReady ? 1 : 0", "reading": "bReadyが真なら1、偽なら0を選ぶ。"}, 
+            {"title": "プラス2つ", "symbol": "++", "meaning": "1増やす", "detail": "変数の値を1増やす。", "example": "iCount++;", "reading": "iCountを1増やす。"}, 
+            {"title": "マイナス2つ", "symbol": "--", "meaning": "1減らす", "detail": "変数の値を1減らす。", "example": "iCount--;", "reading": "iCountを1減らす。"}
+        ];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例 ${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>
