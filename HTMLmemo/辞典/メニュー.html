@@ -1,1 +1,178 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>C# 辞書一覧</title><style>*{box-sizing:border-box}body{margin:0;background:#101827;color:#e5edf7;font-family:system-ui,"Yu Gothic",Meiryo,sans-serif}header{padding:38px max(24px,calc((100vw - 1150px)/2));background:#18253a;border-bottom:1px solid #334155}h1{margin:0 0 12px;font-size:2rem}header p{color:#b8c7dc;line-height:1.7;margin:0}.wrap{max-width:1150px;margin:auto;padding:24px}.tools{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;align-items:center}input{background:#1d2b40;color:white;border:1px solid #46566d;border-radius:9px;padding:13px;flex:1;min-width:210px;font-size:1rem}.count{color:#aabbd0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.card{background:#1b293c;border:1px solid #35465e;border-radius:14px;padding:20px;min-width:0}.card-symbol{font-size:1.55rem;color:#8fcbff;font-family:Consolas,monospace;font-weight:bold}.card-title{font-size:1rem;margin:5px 0 18px;color:#dbe8f8}.code-label{display:block;color:#a8bad0;font-size:.8rem;margin:14px 0 6px}.code-block{background:#0e1725;border-radius:8px;padding:11px 12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;margin:0;font-size:.92rem}button{background:#293e58;border:1px solid #536780;color:white;border-radius:8px;padding:11px;cursor:pointer}@media print{body{background:white;color:black}header,.card{background:white;color:black}.code-block{background:#f1f3f5;color:black}.tools{display:none}.cards{grid-template-columns:repeat(2,1fr)}.card{break-inside:avoid}.card-symbol{color:#173e6b}}a{color:#8fcbff}li{padding:7px}</style></head><body><header><h1>C# 辞書一覧</h1><p>記号辞書と同じカード型・意味・詳細・コード例・日本語の読み方</p></header><main class="wrap"><ul><li><a href="00_記号一覧.html">記号一覧</a></li><li><a href="01_キーワード一覧.html">キーワード一覧</a></li><li><a href="02_演算子一覧.html">演算子一覧</a></li><li><a href="03_データ型一覧.html">データ型一覧</a></li><li><a href="04_アクセス修飾子一覧.html">アクセス修飾子一覧</a></li><li><a href="05_修飾子一覧.html">修飾子一覧</a></li><li><a href="06_エスケープシーケンス一覧.html">エスケープシーケンス一覧</a></li><li><a href="07_文字列メソッド一覧.html">文字列メソッド一覧</a></li><li><a href="08_配列_List一覧.html">配列・List一覧</a></li><li><a href="09_LINQ一覧.html">LINQ一覧</a></li><li><a href="10_例外一覧.html">例外一覧</a></li><li><a href="11_属性一覧.html">属性一覧</a></li><li><a href="12_Unity基本API一覧.html">Unity基本API一覧</a></li></ul></main></body></html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>C# 辞書一覧</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            background: #101827;
+            color: #e5edf7;
+            font-family: system-ui, "Yu Gothic", Meiryo, sans-serif;
+        }
+        
+        header {
+            padding: 38px max(24px, calc((100vw - 1150px) / 2));
+            background: #18253a;
+            border-bottom: 1px solid #334155;
+        }
+        
+        h1 {
+            margin: 0 0 12px;
+            font-size: 2rem;
+        }
+        
+        header p {
+            color: #b8c7dc;
+            line-height: 1.7;
+            margin: 0;
+        }
+        
+        .wrap {
+            max-width: 1150px;
+            margin: auto;
+            padding: 24px;
+        }
+        
+        .tools {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        input {
+            background: #1d2b40;
+            color: white;
+            border: 1px solid #46566d;
+            border-radius: 9px;
+            padding: 13px;
+            flex: 1;
+            min-width: 210px;
+            font-size: 1rem;
+        }
+        
+        .count {
+            color: #aabbd0;
+        }
+        
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .card {
+            background: #1b293c;
+            border: 1px solid #35465e;
+            border-radius: 14px;
+            padding: 20px;
+            min-width: 0;
+        }
+        
+        .card-symbol {
+            font-size: 1.55rem;
+            color: #8fcbff;
+            font-family: Consolas, monospace;
+            font-weight: bold;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            margin: 5px 0 18px;
+            color: #dbe8f8;
+        }
+        
+        .code-label {
+            display: block;
+            color: #a8bad0;
+            font-size: .8rem;
+            margin: 14px 0 6px;
+        }
+        
+        .code-block {
+            background: #0e1725;
+            border-radius: 8px;
+            padding: 11px 12px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            line-height: 1.6;
+            margin: 0;
+            font-size: .92rem;
+        }
+        
+        button {
+            background: #293e58;
+            border: 1px solid #536780;
+            color: white;
+            border-radius: 8px;
+            padding: 11px;
+            cursor: pointer;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            header, .card {
+                background: white;
+                color: black;
+            }
+            .code-block {
+                background: #f1f3f5;
+                color: black;
+            }
+            .tools {
+                display: none;
+            }
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .card {
+                break-inside: avoid;
+            }
+            .card-symbol {
+                color: #173e6b;
+            }
+        }
+        
+        a {
+            color: #8fcbff;
+        }
+        
+        li {
+            padding: 7px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C# 辞書一覧</h1>
+        <p>記号辞書と同じカード型・意味・詳細・コード例・日本語の読み方</p>
+    </header>
+    <main class="wrap">
+        <ul>
+            <li><a href="00_記号一覧.html">記号一覧</a></li>
+            <li><a href="01_キーワード一覧.html">キーワード一覧</a></li>
+            <li><a href="02_演算子一覧.html">演算子一覧</a></li>
+            <li><a href="03_データ型一覧.html">データ型一覧</a></li>
+            <li><a href="04_アクセス修飾子一覧.html">アクセス修飾子一覧</a></li>
+            <li><a href="05_修飾子一覧.html">修飾子一覧</a></li>
+            <li><a href="06_エスケープシーケンス一覧.html">エスケープシーケンス一覧</a></li>
+            <li><a href="07_文字列メソッド一覧.html">文字列メソッド一覧</a></li>
+            <li><a href="08_配列_List一覧.html">配列・List一覧</a></li>
+            <li><a href="09_LINQ一覧.html">LINQ一覧</a></li>
+            <li><a href="10_例外一覧.html">例外一覧</a></li>
+            <li><a href="11_属性一覧.html">属性一覧</a></li>
+            <li><a href="12_Unity基本API一覧.html">Unity基本API一覧</a></li>
+        </ul>
+    </main>
+</body>
+</html>
