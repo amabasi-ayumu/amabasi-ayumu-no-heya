@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# データ型一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# データ型一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "bool", "title": "bool", "meaning": "真偽値", "detail": "true/false", "example": "bool ok = true;", "reading": "okに真（true）を設定する。"}, {"symbol": "byte", "title": "byte", "meaning": "8ビット符号なし整数", "detail": "0～255", "example": "byte n = 255;", "reading": "255の結果をnに代入する。"}, {"symbol": "sbyte", "title": "sbyte", "meaning": "8ビット符号付き整数", "detail": "-128～127", "example": "sbyte n = -1;", "reading": "-1の結果をnに代入する。"}, {"symbol": "short", "title": "short", "meaning": "16ビット符号付き整数", "detail": "Int16", "example": "short n = 100;", "reading": "100の結果をnに代入する。"}, {"symbol": "ushort", "title": "ushort", "meaning": "16ビット符号なし整数", "detail": "UInt16", "example": "ushort n = 100;", "reading": "100の結果をnに代入する。"}, {"symbol": "int", "title": "int", "meaning": "32ビット符号付き整数", "detail": "Int32", "example": "int n = 123;", "reading": "123の結果をnに代入する。"}, {"symbol": "uint", "title": "uint", "meaning": "32ビット符号なし整数", "detail": "UInt32", "example": "uint n = 123U;", "reading": "123Uの結果をnに代入する。"}, {"symbol": "long", "title": "long", "meaning": "64ビット符号付き整数", "detail": "Int64", "example": "long n = 123L;", "reading": "123Lの結果をnに代入する。"}, {"symbol": "ulong", "title": "ulong", "meaning": "64ビット符号なし整数", "detail": "UInt64", "example": "ulong n = 123UL;", "reading": "123ULの結果をnに代入する。"}, {"symbol": "float", "title": "float", "meaning": "単精度浮動小数点", "detail": "約6～9桁の精度", "example": "float n = 1.5f;", "reading": "1.5fの結果をnに代入する。"}, {"symbol": "double", "title": "double", "meaning": "倍精度浮動小数点", "detail": "約15～17桁の精度", "example": "double n = 1.5;", "reading": "1.5の結果をnに代入する。"}, {"symbol": "decimal", "title": "decimal", "meaning": "10進高精度数値", "detail": "金額計算に向く", "example": "decimal price = 1.5m;", "reading": "1.5mの結果をpriceに代入する。"}, {"symbol": "char", "title": "char", "meaning": "UTF-16コード単位", "detail": "Unicode文字全体とは限らない", "example": "char c = 'A';", "reading": "'A'の結果をcに代入する。"}, {"symbol": "string", "title": "string", "meaning": "文字列", "detail": "不変の参照型", "example": "string s = \"ABC\";", "reading": "\"ABC\"の結果をsに代入する。"}, {"symbol": "object", "title": "object", "meaning": "全型の基底型", "detail": "値型の代入はボックス化", "example": "object o = 10;", "reading": "10の結果をoに代入する。"}, {"symbol": "dynamic", "title": "dynamic", "meaning": "動的バインディング", "detail": "実行時にメンバー解決", "example": "dynamic x = 1;", "reading": "1の結果をxに代入する。"}, {"symbol": "nint", "title": "nint", "meaning": "ネイティブサイズ符号付き整数", "detail": "環境に応じ32/64ビット", "example": "nint n = 10;", "reading": "10の結果をnに代入する。"}, {"symbol": "nuint", "title": "nuint", "meaning": "ネイティブサイズ符号なし整数", "detail": "環境に応じ32/64ビット", "example": "nuint n = 10;", "reading": "10の結果をnに代入する。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>

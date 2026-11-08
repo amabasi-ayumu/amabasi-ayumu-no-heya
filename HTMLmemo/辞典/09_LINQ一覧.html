@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# LINQ一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# LINQ一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "Where", "title": "Where", "meaning": "条件に合う要素を抽出", "detail": "遅延実行", "example": "var q = nums.Where(x => x > 0);", "reading": "numsから0より大きい要素を取り出す処理を定義する。"}, {"symbol": "Select", "title": "Select", "meaning": "各要素を変換", "detail": "遅延実行", "example": "var q = nums.Select(x => x * 2);", "reading": "numsの各要素を2倍する処理を定義する。"}, {"symbol": "SelectMany", "title": "SelectMany", "meaning": "入れ子の列を平坦化", "detail": "複数列を連結", "example": "var q = groups.SelectMany(x => x);", "reading": "groups内の複数の要素列を1つの列にまとめる。"}, {"symbol": "OrderBy", "title": "OrderBy", "meaning": "昇順で並べる", "detail": "新たな列挙結果", "example": "var q = nums.OrderBy(x => x);", "reading": "OrderByを使って昇順で並べる処理を行い、結果をqに入れる。"}, {"symbol": "OrderByDescending", "title": "OrderByDescending", "meaning": "降順で並べる", "detail": "新たな列挙結果", "example": "var q = nums.OrderByDescending(x => x);", "reading": "OrderByDescendingを使って降順で並べる処理を行い、結果をqに入れる。"}, {"symbol": "ThenBy", "title": "ThenBy", "meaning": "第二キーで並べる", "detail": "OrderByの後に使用", "example": "var q = items.OrderBy(x => x.A).ThenBy(x => x.B);", "reading": "items.OrderBy(x => x.A).ThenBy(x => x.B)の結果をqに代入する。"}, {"symbol": "GroupBy", "title": "GroupBy", "meaning": "キーでグループ化", "detail": "キーごとのグループ", "example": "var q = items.GroupBy(x => x.Type);", "reading": "items.GroupBy(x => x.Type)の結果をqに代入する。"}, {"symbol": "Any", "title": "Any", "meaning": "条件を満たす要素があるか", "detail": "boolを返す", "example": "bool b = nums.Any(x => x > 0);", "reading": "Anyを使って条件を満たす要素があるか処理を行い、結果をbに入れる。"}, {"symbol": "All", "title": "All", "meaning": "全要素が条件を満たすか", "detail": "空列ではtrue", "example": "bool b = nums.All(x => x > 0);", "reading": "Allを使って全要素が条件を満たすか処理を行い、結果をbに入れる。"}, {"symbol": "FirstOrDefault", "title": "FirstOrDefault", "meaning": "最初の要素または既定値", "detail": "空列の扱いに注意", "example": "int n = nums.FirstOrDefault();", "reading": "FirstOrDefaultを使って最初の要素または既定値処理を行い、結果をnに入れる。"}, {"symbol": "Single", "title": "Single", "meaning": "要素がちょうど1件か検査", "detail": "0件/複数件で例外", "example": "int n = nums.Single();", "reading": "Singleを使って要素がちょうど1件か検査処理を行い、結果をnに入れる。"}, {"symbol": "Distinct", "title": "Distinct", "meaning": "重複を除く", "detail": "等価比較に基づく", "example": "var q = nums.Distinct();", "reading": "Distinctを使って重複を除く処理を行い、結果をqに入れる。"}, {"symbol": "Take", "title": "Take", "meaning": "先頭から指定数取得", "detail": "遅延実行", "example": "var q = nums.Take(3);", "reading": "Takeを使って先頭から指定数取得処理を行い、結果をqに入れる。"}, {"symbol": "Skip", "title": "Skip", "meaning": "先頭から指定数飛ばす", "detail": "遅延実行", "example": "var q = nums.Skip(3);", "reading": "Skipを使って先頭から指定数飛ばす処理を行い、結果をqに入れる。"}, {"symbol": "ToList", "title": "ToList", "meaning": "Listに実体化", "detail": "列挙を実行", "example": "var list = nums.ToList();", "reading": "ToListを使ってListに実体化処理を行い、結果をlistに入れる。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# エスケープシーケンス一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# エスケープシーケンス一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "\\n", "title": "\\n", "meaning": "改行（LF）", "detail": "改行コード U+000A", "example": "\"A\\nB\"", "reading": "\\nを使い、改行（LF）を文字列に含める。"}, {"symbol": "\\r", "title": "\\r", "meaning": "復帰（CR）", "detail": "U+000D", "example": "\"A\\rB\"", "reading": "\\rを使い、復帰（CR）を文字列に含める。"}, {"symbol": "\\t", "title": "\\t", "meaning": "水平タブ", "detail": "U+0009", "example": "\"A\\tB\"", "reading": "\\tを使い、水平タブを文字列に含める。"}, {"symbol": "\\\\", "title": "\\\\", "meaning": "バックスラッシュ", "detail": "文字列内の\\", "example": "\"C:\\\\Temp\"", "reading": "\\\\を使い、バックスラッシュを文字列に含める。"}, {"symbol": "\\\"", "title": "\\\"", "meaning": "二重引用符", "detail": "通常文字列で使用", "example": "\"Say \\\"Hi\\\"\"", "reading": "\\\"を使い、二重引用符を文字列に含める。"}, {"symbol": "\\'", "title": "\\'", "meaning": "単一引用符", "detail": "charリテラルで使用", "example": "'\\''", "reading": "\\'を使い、単一引用符を文字列に含める。"}, {"symbol": "\\0", "title": "\\0", "meaning": "Null文字", "detail": "U+0000", "example": "\"A\\0B\"", "reading": "\\0を使い、Null文字を文字列に含める。"}, {"symbol": "\\a", "title": "\\a", "meaning": "ベル", "detail": "U+0007", "example": "\"\\a\"", "reading": "\\aを使い、ベルを文字列に含める。"}, {"symbol": "\\b", "title": "\\b", "meaning": "バックスペース", "detail": "U+0008", "example": "\"\\b\"", "reading": "\\bを使い、バックスペースを文字列に含める。"}, {"symbol": "\\f", "title": "\\f", "meaning": "フォームフィード", "detail": "U+000C", "example": "\"\\f\"", "reading": "\\fを使い、フォームフィードを文字列に含める。"}, {"symbol": "\\v", "title": "\\v", "meaning": "垂直タブ", "detail": "U+000B", "example": "\"\\v\"", "reading": "\\vを使い、垂直タブを文字列に含める。"}, {"symbol": "\\uXXXX", "title": "\\uXXXX", "meaning": "4桁16進Unicodeエスケープ", "detail": "UTF-16コード単位", "example": "\"\\u3042\"", "reading": "\\uXXXXを使い、4桁16進Unicodeエスケープを文字列に含める。"}, {"symbol": "\\UXXXXXXXX", "title": "\\UXXXXXXXX", "meaning": "8桁16進Unicodeエスケープ", "detail": "Unicodeスカラー値", "example": "\"\\U0001F600\"", "reading": "\\UXXXXXXXXを使い、8桁16進Unicodeエスケープを文字列に含める。"}, {"symbol": "\\xH...", "title": "\\xH...", "meaning": "可変長16進エスケープ", "detail": "1～4桁。後続文字に注意", "example": "\"\\x41\"", "reading": "\\xH...を使い、可変長16進エスケープを文字列に含める。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# 配列・List一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# 配列・List一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "Length", "title": "Length", "meaning": "配列の要素数", "detail": "配列", "example": "int n = array.Length;", "reading": "arrayの要素数をnに入れる。"}, {"symbol": "Array.Sort", "title": "Array.Sort", "meaning": "配列を並べ替え", "detail": "元配列を変更", "example": "Array.Sort(array);", "reading": "配列の要素を並べ替える。"}, {"symbol": "Array.Reverse", "title": "Array.Reverse", "meaning": "配列の順序を反転", "detail": "元配列を変更", "example": "Array.Reverse(array);", "reading": "配列の要素の順序を逆にする。"}, {"symbol": "Array.Copy", "title": "Array.Copy", "meaning": "配列をコピー", "detail": "長さと型に注意", "example": "Array.Copy(src, dst, src.Length);", "reading": "このコードでは「配列をコピー」というArray.Copyの役割を使う。"}, {"symbol": "Array.IndexOf", "title": "Array.IndexOf", "meaning": "要素位置を検索", "detail": "未発見なら-1", "example": "int i = Array.IndexOf(array, 3);", "reading": "Array.IndexOf(array, 3)の結果をiに代入する。"}, {"symbol": "List.Add", "title": "List.Add", "meaning": "末尾に要素追加", "detail": "List<T>", "example": "list.Add(10);", "reading": "このコードでは「末尾に要素追加」というList.Addの役割を使う。"}, {"symbol": "List.AddRange", "title": "List.AddRange", "meaning": "複数要素追加", "detail": "List<T>", "example": "list.AddRange(other);", "reading": "このコードでは「複数要素追加」というList.AddRangeの役割を使う。"}, {"symbol": "List.Remove", "title": "List.Remove", "meaning": "一致する最初の要素を削除", "detail": "戻り値は削除成功か", "example": "bool ok = list.Remove(10);", "reading": "list.Remove(10)の結果をokに代入する。"}, {"symbol": "List.RemoveAt", "title": "List.RemoveAt", "meaning": "指定位置の要素を削除", "detail": "範囲外は例外", "example": "list.RemoveAt(0);", "reading": "このコードでは「指定位置の要素を削除」というList.RemoveAtの役割を使う。"}, {"symbol": "List.Clear", "title": "List.Clear", "meaning": "全要素削除", "detail": "容量は必ずしも縮まない", "example": "list.Clear();", "reading": "このコードでは「全要素削除」というList.Clearの役割を使う。"}, {"symbol": "List.Contains", "title": "List.Contains", "meaning": "要素が存在するか", "detail": "等価比較", "example": "bool ok = list.Contains(10);", "reading": "指定した文字列が含まれるか調べてokに入れる。"}, {"symbol": "List.Find", "title": "List.Find", "meaning": "条件に合う最初の要素", "detail": "未発見なら既定値", "example": "int n = list.Find(x => x > 5);", "reading": "list.Find(x => x > 5)の結果をnに代入する。"}, {"symbol": "List.Sort", "title": "List.Sort", "meaning": "要素を並べ替え", "detail": "元リストを変更", "example": "list.Sort();", "reading": "このコードでは「要素を並べ替え」というList.Sortの役割を使う。"}, {"symbol": "List.Count", "title": "List.Count", "meaning": "要素数", "detail": "プロパティ", "example": "int n = list.Count;", "reading": "list.Countの結果をnに代入する。"}, {"symbol": "List.Capacity", "title": "List.Capacity", "meaning": "確保済み容量", "detail": "Countとは異なる", "example": "int n = list.Capacity;", "reading": "list.Capacityの結果をnに代入する。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>

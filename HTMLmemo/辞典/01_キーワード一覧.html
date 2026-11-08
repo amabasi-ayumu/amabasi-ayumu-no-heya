@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# キーワード一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# キーワード一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data =
+            [
+                {
+                    "symbol": "class", "title": "class", "meaning": "クラスを宣言", "detail": "参照型の定義", "example": "class Player { }", "reading": "Playerというクラスを宣言する。"
+                },
+
+                {
+                    "symbol": "struct", "title": "struct", "meaning": "構造体を宣言", "detail": "値型の定義", "example": "struct Point { public int X; }", "reading": "構造体を宣言する。"
+                },
+
+                {
+                    "symbol": "interface", "title": "interface", "meaning": "インターフェースを宣言", "detail": "契約を定義", "example": "interface IRun { void Run(); }", "reading": "インターフェースを宣言する。"
+                },
+
+                {
+                    "symbol": "enum", "title": "enum", "meaning": "列挙型を宣言", "detail": "名前付き定数", "example": "enum State { Idle, Run }", "reading": "列挙型を宣言する。"
+                },
+
+                {
+                    "symbol": "namespace", "title": "namespace", "meaning": "名前空間を宣言", "detail": "名前の衝突を整理", "example": "namespace Game.Core;", "reading": "このコードでは「名前空間を宣言」というnamespaceの役割を使う。"
+                },
+
+                {
+                    "symbol": "using", "title": "using", "meaning": "名前空間の取り込み等", "detail": "using文や別名にも使用", "example": "using System;", "reading": "指定した名前空間またはリソースを利用する。"
+                },
+
+                {
+                    "symbol": "new", "title": "new", "meaning": "インスタンス生成等", "detail": "new修飾子にも使用", "example": "var p = new Player();", "reading": "pに新しいPlayerの値を設定する。"
+                },
+                {
+                    "symbol": "return", "title": "return", "meaning": "処理を終了して値を返す", "detail": "voidでもreturn可能", "example": "return 10;", "reading": "式の結果を呼び出し元へ返す。"
+                },
+                {
+                    "symbol": "if", "title": "if", "meaning": "条件分岐", "detail": "bool条件", "example": "if (ok) Run();", "reading": "条件が真のときだけ処理する。"
+                },
+
+                {
+                    "symbol": "else", "title": "else", "meaning": "条件不成立時の分岐", "detail": "ifと組で使用", "example": "else Stop();", "reading": "このコードでは「条件不成立時の分岐」というelseの役割を使う。"
+                },
+
+                {
+                    "symbol": "switch", "title": "switch", "meaning": "複数候補の分岐", "detail": "switch式もある", "example": "switch (state) { case 0: break; }", "reading": "値に応じて処理を分岐する。"
+                },
+
+                {
+                    "symbol": "for", "title": "for", "meaning": "回数制御の反復", "detail": "初期化・条件・更新", "example": "for (int i=0;i<3;i++) { }", "reading": "指定した条件で繰り返し処理する。"
+                },
+
+                {
+                    "symbol": "foreach", "title": "foreach", "meaning": "列挙可能な要素を反復", "detail": "IEnumerableなど", "example": "foreach (var x in items) { }", "reading": "要素を1つずつ取り出して処理する。"
+                },
+
+                {
+                    "symbol": "while", "title": "while", "meaning": "条件が真の間反復", "detail": "無限ループに注意", "example": "while (ready) { }", "reading": "このコードでは「条件が真の間反復」というwhileの役割を使う。"
+                },
+
+                {
+                    "symbol": "break", "title": "break", "meaning": "ループやswitchを抜ける", "detail": "最も内側の対象を終了", "example": "break;", "reading": "このコードでは「ループやswitchを抜ける」というbreakの役割を使う。"
+                },
+
+                {
+                    "symbol": "continue", "title": "continue", "meaning": "次の反復へ進む", "detail": "ループで使用", "example": "continue;", "reading": "このコードでは「次の反復へ進む」というcontinueの役割を使う。"
+                },
+
+                {
+                    "symbol": "try", "title": "try", "meaning": "例外が起こり得る処理を囲む", "detail": "catch/finallyと組み合わせ", "example": "try { Run(); } catch { }", "reading": "このコードでは「例外が起こり得る処理を囲む」というtryの役割を使う。"
+                },
+
+                {
+                    "symbol": "throw", "title": "throw", "meaning": "例外を送出", "detail": "throw;は再送出", "example": "throw new Exception();", "reading": "throw例外を発生させる。"
+                },
+
+                {
+                    "symbol": "async", "title": "async", "meaning": "非同期メソッド等を指定", "detail": "awaitと併用", "example": "async Task RunAsync() { await Work(); }", "reading": "このコードでは「非同期メソッド等を指定」というasyncの役割を使う。"
+                },
+
+                {
+                    "symbol": "await", "title": "await", "meaning": "非同期操作の完了を待つ", "detail": "スレッドのブロックとは異なる", "example": "await Task.Delay(100);", "reading": "このコードでは「非同期操作の完了を待つ」というawaitの役割を使う。"
+                },
+
+                {
+                    "symbol": "yield", "title": "yield", "meaning": "反復要素を逐次返す", "detail": "イテレーターで使用", "example": "yield return 1;", "reading": "このコードでは「反復要素を逐次返す」というyieldの役割を使う。"
+                }
+            ];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>

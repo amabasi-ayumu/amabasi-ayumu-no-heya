@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>C# 修飾子一覧 の意味</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #101827; color: #e5edf7; font-family: system-ui, "Yu Gothic", Meiryo, sans-serif; }
+        .header { padding: 38px max(24px, calc((100vw - 1150px) / 2)); background: #18253a; border-bottom: 1px solid #334155; }
+        .header-title { margin: 0 0 12px; font-size: 2rem; }
+        .header-desc { color: #b8c7dc; line-height: 1.7; margin: 0; }
+        .wrap { max-width: 1150px; margin: auto; padding: 24px; }
+        .back-link { color: #8fcbff; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .tools { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+        .search-input { background: #1d2b40; color: white; border: 1px solid #46566d; border-radius: 9px; padding: 13px; flex: 1; min-width: 210px; font-size: 1rem; }
+        .count { color: #aabbd0; }
+        .btn-print { background: #293e58; border: 1px solid #536780; color: white; border-radius: 8px; padding: 11px; cursor: pointer; font-size: 1rem; }
+        .btn-print:hover { background: #354e6e; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card { background: #1b293c; border: 1px solid #35465e; border-radius: 14px; padding: 20px; min-width: 0; }
+        .card-symbol { font-size: 1.55rem; color: #8fcbff; font-family: Consolas, monospace; font-weight: bold; }
+        .card-title { font-size: 1rem; margin: 5px 0 18px; color: #dbe8f8; }
+        .code-label { display: block; color: #a8bad0; font-size: .8rem; margin: 14px 0 6px; }
+        .code-block { background: #0e1725; border-radius: 8px; padding: 11px 12px; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; margin: 0; font-size: .92rem; }
+        @media print {
+            body { background: white; color: black; }
+            .header, .card { background: white; color: black; border-color: #ccc; }
+            .code-block { background: #f1f3f5; color: black; border: 1px solid #ddd; }
+            .tools { display: none; }
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .card { break-inside: avoid; }
+            .card-symbol { color: #173e6b; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1 class="header-title">C# 修飾子一覧 の意味</h1>
+        <p class="header-desc">意味：言葉の意味 ／ 詳細：正確な役割 ／ コード例：C#コードと日本語での読み方</p>
+    </header>
+    <main class="wrap">
+        <p><a href="index.html" class="back-link">← 一覧目次</a></p>
+        <div class="tools">
+            <input id="search" class="search-input" placeholder="名称・意味・詳細・コード例から検索" aria-label="検索">
+            <span class="count" id="count"></span>
+            <button class="btn-print" onclick="window.print()">印刷</button>
+        </div>
+        <section class="cards" id="cards"></section>
+    </main>
+    <script>
+        const data = [{"symbol": "static", "title": "static", "meaning": "インスタンスではなく型に属する", "detail": "静的メンバー", "example": "static int Count;", "reading": "staticを指定して、インスタンスではなく型に属するメンバーを宣言する。"}, {"symbol": "readonly", "title": "readonly", "meaning": "フィールドの再代入を制限", "detail": "宣言時かコンストラクターで設定", "example": "readonly int id;", "reading": "readonlyを指定して、フィールドの再代入を制限メンバーを宣言する。"}, {"symbol": "const", "title": "const", "meaning": "コンパイル時定数", "detail": "宣言時に値を指定", "example": "const int Max = 10;", "reading": "10の結果をMaxに代入する。"}, {"symbol": "abstract", "title": "abstract", "meaning": "抽象型・抽象メンバー", "detail": "直接インスタンス化不可", "example": "abstract class Shape { }", "reading": "このコードでは「抽象型・抽象メンバー」というabstractの役割を使う。"}, {"symbol": "sealed", "title": "sealed", "meaning": "継承・オーバーライドを禁止", "detail": "sealed overrideもある", "example": "sealed class Final { }", "reading": "このコードでは「継承・オーバーライドを禁止」というsealedの役割を使う。"}, {"symbol": "virtual", "title": "virtual", "meaning": "派生型で上書き可能", "detail": "overrideで上書き", "example": "public virtual void Run() { }", "reading": "virtualを指定して、派生型で上書き可能メンバーを宣言する。"}, {"symbol": "override", "title": "override", "meaning": "基底型の仮想メンバーを上書き", "detail": "基底側の仮想宣言が必要", "example": "public override string ToString() => \"A\";", "reading": "overrideを指定して、基底型の仮想メンバーを上書きメンバーを宣言する。"}, {"symbol": "partial", "title": "partial", "meaning": "型などの定義を分割", "detail": "生成コードと分離", "example": "partial class Player { }", "reading": "このコードでは「型などの定義を分割」というpartialの役割を使う。"}, {"symbol": "required", "title": "required", "meaning": "初期化を要求", "detail": "オブジェクト初期化時など", "example": "public required string Name { get; init; }", "reading": "requiredを指定して、初期化を要求メンバーを宣言する。"}, {"symbol": "volatile", "title": "volatile", "meaning": "特定のフィールドアクセス順序を制約", "detail": "排他制御の代わりにはならない", "example": "private volatile bool ready;", "reading": "volatileを指定して、特定のフィールドアクセス順序を制約メンバーを宣言する。"}, {"symbol": "unsafe", "title": "unsafe", "meaning": "unsafeコンテキスト", "detail": "コンパイラー設定が必要", "example": "unsafe { int* p = null; }", "reading": "null; }の結果をpに代入する。"}];
+
+        const cards = document.getElementById('cards'),
+              search = document.getElementById('search'),
+              count = document.getElementById('count');
+
+        function esc(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function render() {
+            const q = search.value.toLowerCase().trim();
+            const filtered = data.filter(x => Object.values(x).join(' ').toLowerCase().includes(q));
+            count.textContent = filtered.length + ' / ' + data.length + ' 件';
+            cards.innerHTML = filtered.map(x => `
+                <article class="card">
+                    <span class="card-symbol">${esc(x.symbol)}</span>
+                    <h3 class="card-title">${esc(x.title)}</h3>
+                    <small class="code-label">意味</small>
+                    <pre class="code-block"><code>${esc(x.meaning)}</code></pre>
+                    <small class="code-label">詳細</small>
+                    <pre class="code-block"><code>${esc(x.detail)}</code></pre>
+                    <small class="code-label">コード例　${esc(x.example)}</small>
+                    <pre class="code-block"><code>${esc(x.reading)}</code></pre>
+                </article>
+            `).join('');
+        }
+        search.addEventListener('input', render);
+        render();
+    </script>
+</body>
+</html>
