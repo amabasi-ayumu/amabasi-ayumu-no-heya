@@ -221,7 +221,6 @@
         </form>
         
         <button class="action-btn" onclick="selectHtmlFolder()" style="color: #34a853;">📁 HTMLフォルダーを選択</button>
-        <!-- 復元ボタン（バックアップとして残しますが、基本は自動で消えます） -->
         <button id="restore-folder-btn" class="action-btn" onclick="forceRestoreHtmlFolder()" style="color: #fbbc05; display: none;">🔄 フォルダを許可して復元</button>
 
         <input type="file" id="url-folder-input" webkitdirectory directory style="display: none;">
@@ -230,7 +229,10 @@
         <button class="action-btn" onclick="clearFavorites()" style="color: var(--logo-r);">🗑 リセット</button>
         
         <div class="right-tools">
-            <button class="action-btn" onclick="addShortcut()">＋ 右に追加</button>
+            <button class="action-btn" onclick="exportShortcuts()">💾 保存</button>
+            <input type="file" id="import-shortcuts-input" accept=".json" style="display: none;">
+            <button class="action-btn" onclick="document.getElementById('import-shortcuts-input').click()">📂 読込</button>
+            <button class="action-btn" onclick="addShortcut()">＋ 追加</button>
             <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
         </div>
     </header>
@@ -308,8 +310,8 @@
         // ==========================================
         const DB_NAME = 'MasaSearchDB';
         const STORE_NAME = 'dirHandles';
-        let isFolderRestored = false; // 復元済みフラグ
-        let gestureRestoreAttempted = false; // 試行済みフラグ
+        let isFolderRestored = false; 
+        let gestureRestoreAttempted = false; 
 
         function openDB() {
             return new Promise((resolve, reject) => {
@@ -358,48 +360,41 @@
             } catch(e) {}
         }
 
-        // ページ読み込み時に可能な限り自動で復元する
         async function attemptSilentRestore() {
             const handle = await loadDirectoryHandle();
             if (!handle) return;
             
-            // ブラウザが既に許可を出している場合は即座に読み込む
             if (await handle.queryPermission({ mode: 'read' }) === 'granted') {
                 await processDirectoryHandle(handle);
                 isFolderRestored = true;
             } else {
-                // セキュリティ上許可待ちの場合は復元ボタンを表示
                 document.getElementById('restore-folder-btn').style.display = 'inline-block';
             }
         }
 
-        // ユーザーが画面のどこかをクリック等した瞬間に自動で許可を求めて読み込む
         async function attemptGestureRestore() {
             if (isFolderRestored || gestureRestoreAttempted) return;
             const handle = await loadDirectoryHandle();
             if (!handle) return;
 
-            gestureRestoreAttempted = true; // 何度もポップアップが出ないよう1回だけにする
+            gestureRestoreAttempted = true; 
             try {
                 const options = { mode: 'read' };
                 if ((await handle.queryPermission(options)) !== 'granted') {
-                    // ここでブラウザネイティブの「ファイルを閲覧しますか？」の許可ポップアップが出ます
                     const permission = await handle.requestPermission(options);
                     if (permission !== 'granted') return;
                 }
                 await processDirectoryHandle(handle);
                 isFolderRestored = true;
-                document.getElementById('restore-folder-btn').style.display = 'none'; // 成功したらボタンを消す
+                document.getElementById('restore-folder-btn').style.display = 'none'; 
             } catch(e) { console.error("復元エラー:", e); }
         }
 
-        // ボタンから手動で再試行する場合
         async function forceRestoreHtmlFolder() {
             gestureRestoreAttempted = false; 
             await attemptGestureRestore();
         }
 
-        // ユーザーアクション（クリック・キー入力）を検知して自動読み込みを発動
         document.addEventListener('click', attemptGestureRestore);
         document.addEventListener('keydown', attemptGestureRestore);
 
@@ -419,11 +414,9 @@
                 themeToggleBtn.innerText = newTheme === 'dark' ? '☀️' : '🌙';
             });
 
-            // 起動時にサイレント復元を試みる
             await attemptSilentRestore();
         });
 
-        // HTML読み込み処理（File System Access API）
         let htmlFolderHandleName = "";
         let htmlFileHandles = {};
 
@@ -469,7 +462,6 @@
             }
         }
 
-        // URLショートカット読み込み処理
         document.getElementById('url-folder-input').addEventListener('change', async function(e) {
             const files = e.target.files;
             if (files.length === 0) return;
@@ -521,7 +513,6 @@
             e.target.value = '';
         });
 
-        // フォルダヘッダー（タイトルとピン留めボタン）を作成するヘルパー関数
         function createFolderHeader(titleText, colElement) {
             const header = document.createElement('div');
             header.className = 'folder-title';
@@ -675,8 +666,9 @@
         }
 
         // ==========================================
-        // ▼ 右側サイドバー：矢印ボタン上下並べ替え処理 ▼
+        // ▼ 右側サイドバー処理・ファイルの保存/読込 ▼
         // ==========================================
+
         function renderShortcuts() {
             const container = document.getElementById('shortcut-list');
             container.innerHTML = ''; 
@@ -772,6 +764,56 @@
             localStorage.setItem('myShortcuts', JSON.stringify(shortcuts));
             renderShortcuts();
         }
+
+        // ==========================================
+        // ▼ 追加機能：ショートカットのエクスポート / インポート ▼
+        // ==========================================
+        
+        function exportShortcuts() {
+            const dataStr = localStorage.getItem('myShortcuts') || '[]';
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'shortcuts.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById('import-shortcuts-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data)) {
+                        let existing = JSON.parse(localStorage.getItem('myShortcuts')) || [];
+                        let existingUrls = new Set(existing.map(item => item.url));
+                        let addedCount = 0;
+                        data.forEach(item => {
+                            if (item && item.url && !existingUrls.has(item.url)) {
+                                existing.push(item);
+                                existingUrls.add(item.url);
+                                addedCount++;
+                            }
+                        });
+                        localStorage.setItem('myShortcuts', JSON.stringify(existing));
+                        renderShortcuts();
+                        alert(addedCount + ' 件のショートカットを追加（結合）しました。');
+                    } else {
+                        alert('無効なファイル形式です。');
+                    }
+                } catch (err) {
+                    alert('ファイルの読み込みに失敗しました。');
+                }
+                e.target.value = ''; // リセットして再度同じファイルを選べるようにする
+            };
+            reader.readAsText(file);
+        });
+
     </script>
 </body>
 </html>
