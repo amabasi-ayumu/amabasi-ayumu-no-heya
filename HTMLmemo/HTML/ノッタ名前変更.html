@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>入力フォーム</title>
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+    max-width: 400px;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+  }
+  .child-input-group {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+  }
+  .child-input-group input {
+    margin-bottom: 0;
+  }
+  .remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0 10px;
+    cursor: pointer;
+  }
+  .remove-btn:hover {
+    background-color: #c82333;
+  }
+  .add-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .add-btn:hover {
+    background-color: #218838;
+  }
+  .copy-btn {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+  .copy-btn:hover{
+        
+        background-color: #0056b3;
+    }
+  .copy-btn-group {
+        display: flex;
+        gap: 10px;
+    }  /* リセットボタン用のスタイルを追加 */
+    .reset-btn {
+        background-color: #6c757d;
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+
+  .reset-btn:hover {
+            background-color: #5a6268;
+        }
+        
+</style>
+</head>
+<body>
+
+  <div class="form-group">
+    <label for="date">日付</label>
+    <input type="date" id="date">
+  </div>
+
+  <div class="form-group">
+    <label for="mentor">メンター名</label>
+    <input type="text" id="mentor" placeholder="例: 山田太郎">
+  </div>
+
+  <div class="form-group">
+    <label for="course">コース名</label>
+    <input type="text" id="course" placeholder="例: プログラミングコース">
+  </div>
+
+  <div class="form-group">
+    <label>お子さんのなまえ</label>
+    <div id="children-container">
+      <div class="child-input-group">
+        <input type="text" class="child-name" placeholder="例: 山田一郎">
+      </div>
+    </div>
+    <button class="add-btn" onclick="addChild()">＋ お子さんを追加</button>
+  </div>
+
+  <button class="copy-btn" onclick="copyText()">コピー</button>
+  <button onclick="resetForm()" class="reset-btn">リセット</button>
+  <script>
+    // お子さんの入力欄を追加する関数
+    function addChild() {
+      const container = document.getElementById('children-container');
+      
+      const group = document.createElement('div');
+      group.className = 'child-input-group';
+      
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'child-name';
+      input.placeholder = '例: 山田二郎';
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.innerText = '削除';
+      removeBtn.onclick = function() {
+        container.removeChild(group);
+      };
+      
+      group.appendChild(input);
+      group.appendChild(removeBtn);
+      container.appendChild(group);
+    }
+
+    // コピーを実行する関数
+    function copyText() {
+      const date = document.getElementById('date').value;
+        const mentor = document.getElementById('mentor').value;
+        const course = document.getElementById('course').value;
+      
+      // 全てのお子さんの名前を取得し、空欄を除外
+      const childInputs = document.querySelectorAll('.child-name');
+      const childNames = [];
+      childInputs.forEach(input => {
+        if (input.value.trim() !== '') {
+          childNames.push(input.value.trim());
+        }
+      });
+
+      // 複数いる場合はアンダースコア(_)で繋ぐ
+      const childText = childNames.join('_');
+
+      // 日付_メンター名_お子さんの名前 の形式で結合
+        const resultText = `${date}_${mentor}_${course}_${childText}`;
+
+      // クリップボードにコピー
+      navigator.clipboard.writeText(resultText).then(() => {
+        alert(`以下の内容をコピーしました:\n${resultText}`);
+      }).catch(err => {
+        alert('コピーに失敗しました。お使いのブラウザが対応していない可能性があります。');
+      });
+    }
+      // 入力内容をリセットする関数を追加
+      function resetForm() {
+          document.getElementById('date').value = '';
+          document.getElementById('mentor').value = '';
+          document.getElementById('course').value = '';
+          document.getElementById('children-container');
+          childrenContainer.innerHTML = `
+   <div class="child-input-group">
+     <input type="text" class="child-name" placeholder="例: 山田一郎">
+   </div>
+ `;
+         
+      }
+  </script>
+
+</body>
+</html>
