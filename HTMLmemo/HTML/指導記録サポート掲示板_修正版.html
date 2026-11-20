@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板 ＆ 報告書作成ツール</title>
+    <style>
+        /* =========================================
+           共通＆メイン画面（掲示板）のスタイル
+           ========================================= */
+        body { font-family: sans-serif; margin: 20px; background: #f0f4f8; color: #333; }
+        .container { max-width: 800px; margin: auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2 { font-size: 22px; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-top: 0; }
+        h2 { color: #2e7d32; border-color: #4CAF50; text-align: center; }
+        
+        .btn { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 5px; margin-bottom: 5px; font-weight: bold; }
+        .btn:hover { background: #0056b3; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        
+        .controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; }
+        .json-section { border-left: 2px solid #ccc; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; }
+        
+        /* 掲示板の投稿リスト (新スタイル) */
+        .post-list { margin-top: 20px; }
+        .post-item { border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 15px; background: #fafafa; }
+        .list-view-item { cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s; border-color: #2196F3; }
+        .list-view-item:hover { background-color: #e3f2fd; box-shadow: 0 2px 5px rgba(33, 150, 243, 0.3); }
+        .list-title { margin: 0; font-size: 16px; color: #1565c0; font-weight: bold; }
+        
+        .post-header { font-size: 13px; color: #555; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        .post-body { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
+        
+        /* 掲示板上のレポート表示用スタイル */
+        .report-field { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .report-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .report-field label { font-size: 14px; color: #1565c0; display: inline-block; margin-bottom: 5px; font-weight: bold; }
+        .copy-btn-small { padding: 4px 8px; font-size: 12px; margin-left: 10px; }
+
+        /* モーダル（小窓）のスタイル */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fefefe; margin: 4% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 800px; border-radius: 8px; max-height: 85vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
+        .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
+        .close-btn:hover, .close-btn:focus { color: #333; text-decoration: none; }
+
+        /* =========================================
+           小窓（報告書作成ツール）のスタイル
+           ========================================= */
+        .top-actions { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+        .reset-btn { background-color: #757575; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background-color 0.2s; }
+        .reset-btn:hover { background-color: #616161; }
+        .submit-bbs-btn { background-color: #ff5722; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.2s; }
+        .submit-bbs-btn:hover { background-color: #e64a19; }
+
+        .form-group { margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; }
+        .import-group { background-color: #e3f2fd; border-color: #bbdefb; }
+        .import-section { padding: 10px; background-color: #fff; border-radius: 4px; margin-bottom: 10px; border: 1px solid #bbdefb; }
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .date-group { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .date-group input { width: 80px !important; }
+        
+        .btn-primary { background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; transition: background-color 0.2s; }
+        .btn-primary:hover { background-color: #1976D2; }
+        .btn-primary.copied { background-color: #4CAF50; }
+        
+        .download-btn { background-color: #4CAF50; color: white; padding: 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: background-color 0.2s; }
+        .download-btn:hover { background-color: #45a049; }
+        .submit-large-btn { background-color: #ff5722; color: white; padding: 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: background-color 0.2s; }
+        .submit-large-btn:hover { background-color: #e64a19; }
+
+        input[type="text"], input[type="number"], input[type="file"], textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 14px; line-height: 1.6; resize: vertical; }
+        input[type="file"] { background-color: #fff; cursor: pointer; }
+
+        .person-card { border: 2px solid #81c784; border-radius: 8px; padding: 20px; margin-bottom: 25px; background-color: #fff; }
+        .person-header { background-color: #e8f5e9; margin: -20px -20px 20px -20px; padding: 12px 20px; border-radius: 6px 6px 0 0; border-bottom: 1px solid #81c784; display: flex; justify-content: space-between; align-items: center; }
+        .person-header h3 { margin: 0; color: #2e7d32; font-size: 18px; }
+        
+        .remove-btn { background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .remove-btn:hover { background-color: #d32f2f; }
+        .add-person-btn { background-color: #ff9800; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; transition: background-color 0.2s; }
+        .add-person-btn:hover { background-color: #f57c00; }
+        .summary-group { border: 2px solid #2196F3; background-color: #e3f2fd; }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- JavaScriptで中身を描画します -->
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'bbs_data_json_mode';
+        let personCounter = 0; 
+
+        // 初期化処理
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'post') {
+                renderPostWindow();
+            } else {
+                renderMainWindow();
+            }
+        }
+
+        function getPosts() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function savePosts(posts) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+        }
+
+        // ==========================================
+        // メイン画面（一覧表示）
+        // ==========================================
+        function renderMainWindow() {
+            document.title = "掲示板 - 一覧画面";
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <h1 style="color:#333; border-color:#ddd; text-align:left;">掲示板 (個別コピー対応版)</h1>
+                <div class="controls">
+                    <div>
+                        <button class="btn" onclick="openPostWindow()" style="padding: 12px 20px; font-size: 16px;">📝 別窓で入力・報告書作成</button>
+                    </div>
+                    <div class="json-section">
+                        <label style="font-size: 13px; font-weight:bold; color: #d9534f;">▼ 外部からJSONを読み込む</label>
+                        <input type="file" id="jsonInput" accept=".json" onchange="loadJSON(event)" style="font-size:13px; padding: 5px;">
+                    </div>
+                    <div class="json-section">
+                        <label style="font-size: 13px; font-weight:bold; color: #5cb85c;">▼ 現在のデータを保存</label>
+                        <button class="btn btn-success" onclick="exportJSON()">💾 JSONファイルとしてダウンロード</button>
+                    </div>
+                </div>
+                <div id="postList" class="post-list"></div>
+
+                <!-- モーダルウィンドウ（小窓） -->
+                <div id="postModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-btn" onclick="closeModal()">&times;</span>
+                        <div id="modalBody"></div>
+                    </div>
+                </div>
+            `;
+            updatePostList();
+
+            window.addEventListener('storage', function(e) {
+                if (e.key === STORAGE_KEY) { updatePostList(); }
+            });
+
+            // モーダルの外側をクリックした時に閉じる処理
+            window.onclick = function(event) {
+                const modal = document.getElementById('postModal');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            }
+        }
+
+        function updatePostList() {
+            const postList = document.getElementById('postList');
+            const posts = getPosts();
+            
+            if (posts.length === 0) {
+                postList.innerHTML = '<p style="color:#777; text-align:center; padding: 20px;">データがありません。<br>「別窓で入力」から報告書を作成して掲示板に送信してください。</p>';
+                return;
+            }
+
+            // タイトルを「日付とお子さんの名前」にする
+            const html = [...posts].reverse().map((post, index) => {
+                const originalIndex = posts.length - 1 - index;
+                
+                // timestampから日付と時間を分離 (例: "2026/10/31 07:58" -> ["2026/10/31", "07:58"])
+                const dateParts = post.timestamp.split(' ');
+                const dateStr = dateParts[0];
+                const timeStr = dateParts[1] || '';
+
+                // タイトルの作成: 【日付】お子さんの名前
+                const title = post.type === "report" 
+                    ? `【${dateStr}】👤 ${escapeHTML(post.name)}` 
+                    : `【${dateStr}】📝 ${escapeHTML(post.name)}`;
+
+                return `
+                    <div class="post-item list-view-item person-card" style="padding: 15px; margin-bottom: 10px;" onclick="openModal(${originalIndex})">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 class="list-title">${title}</h3>
+                            <span style="font-size:14px; color:#555; font-weight:bold;">${timeStr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            postList.innerHTML = html;
+        }
+
+        // 該当の投稿をモーダルで開く関数
+        function openModal(index) {
+            const posts = getPosts();
+            const post = posts[index];
+            if (!post) return;
+
+            const modal = document.getElementById('postModal');
+            const modalBody = document.getElementById('modalBody');
+
+            if (post.type === "report") {
+                let fieldsHtml = post.fields.map(f => {
+                    if(!f.value.trim()) return '';
+                    return `
+                        <div class="report-field">
+                            <div class="header-area">
+                                <label>${escapeHTML(f.label)}</label>
+                                <button class="btn-primary copy-btn-small" onclick="copyEncodedString('${encodeURIComponent(f.value)}', this)">コピー</button>
+                            </div>
+                            <div class="post-body">${escapeHTML(f.value)}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                let summaryHtml = '';
+                if (post.summary && post.summary.trim() !== '') {
+                    summaryHtml = `
+                        <div class="report-field summary-group" style="padding: 15px; margin-bottom:15px; border-radius: 6px;">
+                            <div class="header-area">
+                                <label>■ サマリ</label>
+                                <button class="btn-primary copy-btn-small" onclick="copyEncodedString('${encodeURIComponent(post.summary)}', this)">コピー</button>
+                            </div>
+                            <div class="post-body">${escapeHTML(post.summary)}</div>
+                        </div>
+                    `;
+                }
+
+                // モーダル内に描画（外枠のデザインを調整）
+                modalBody.innerHTML = `
+                    <div class="person-card" style="border: none; padding: 0; margin-bottom: 0; box-shadow: none;">
+                        <div class="person-header" style="background-color: #e3f2fd; border-bottom: 2px solid #2196F3; margin: 0; border-radius: 5px 5px 0 0; padding-right: 40px;">
+                            <h3 style="color: #1565c0;">👤 <span>${escapeHTML(post.name)}</span></h3>
+                            <span style="font-size:12px; color:#555;">${post.timestamp}</span>
+                        </div>
+                        <div style="padding: 20px 5px 5px 5px;">
+                            ${summaryHtml}
+                            ${fieldsHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 旧形式テキストデータの場合
+                modalBody.innerHTML = `
+                    <div class="post-item" style="margin-bottom:0; border: none;">
+                        <div class="post-header">
+                            名前: <strong>${escapeHTML(post.name)}</strong>  |  日時: ${post.timestamp}
+                        </div>
+                        <div class="post-body">${escapeHTML(post.message)}</div>
+                    </div>
+                `;
+            }
+
+            modal.style.display = "block";
+            document.body.style.overflow = "hidden"; // 背景のスクロールを無効化
+        }
+
+        // モーダルを閉じる関数
+        function closeModal() {
+            document.getElementById('postModal').style.display = "none";
+            document.body.style.overflow = "auto"; // 背景のスクロールを有効化
+        }
+
+        function openPostWindow() {
+            window.open('?mode=post', 'postWindow', 'width=800,height=900,menubar=no,toolbar=no');
+        }
+
+        // ==========================================
+        // 別窓（報告書作成＆送信画面）
+        // ==========================================
+        function renderPostWindow() {
+            document.title = "報告書作成 ＆ 掲示板投稿";
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <h2>報告書作成 ＆ 掲示板投稿ツール</h2>
+                
+                <div class="top-actions">
+                    <button class="reset-btn" onclick="resetForm()">🔄 画面をリセット（初期化）</button>
+                    <button class="submit-bbs-btn" onclick="submitToBBS()" style="margin-left: 10px;">🚀 掲示板に送信する</button>
+                </div>
+
+                <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 20px;">
+                    テキストを読み込むと自動整形されます。作成した記録は「掲示板に送信」できます。
+                </p>
+
+                <!-- ファイル読み込み＆直接貼り付け -->
+                <div class="form-group import-group">
+                    <label>📁 テキストの読み込み（ファイル or 直接貼り付け）</label>
+                    <div class="import-section" style="margin-top: 10px;">
+                        <p style="font-weight: bold; margin: 0 0 5px 0; font-size: 14px;">① テキストファイル(.txt)から読み込む</p>
+                        <input type="file" id="fileInput" accept=".txt" onchange="loadFile(event)">
+                    </div>
+                    <div class="import-section">
+                        <p style="font-weight: bold; margin: 0 0 5px 0; font-size: 14px;">② 直接テキストを貼り付けて読み込む</p>
+                        <textarea id="pasteInput" rows="4" placeholder="ここに複数人分のテキストをコピー＆ペーストしてください..."></textarea>
+                        <button class="btn-primary" onclick="loadPastedText()" style="width: 100%; margin-top: 8px; padding: 12px; font-size: 15px;">貼り付けたテキストを反映する</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>■ 日付（ファイル保存時の名前に使用）</label>
+                    <div class="date-group" style="margin-top: 10px;">
+                        <input type="number" id="inputYear" required> 年
+                        <input type="number" id="inputMonth" required min="1" max="12"> 月
+                        <input type="number" id="inputDay" required min="1" max="31"> 日
+                    </div>
+                </div>
+
+                <div class="form-group summary-group">
+                    <div class="header-area">
+                        <label>■ サマリ</label>
+                        <button class="btn-primary" onclick="copyText('fieldSummary', this)">コピー</button>
+                    </div>
+                    <p style="font-size: 13px; color: #555; margin: -5px 0 10px 0;">※全員共通の項目です。掲示板送信時にも反映されます。</p>
+                    <input type="text" id="fieldSummary" placeholder="今日の全体サマリなどを入力してください">
+                </div>
+
+                <!-- 対象者の枠 -->
+                <div id="persons-container"></div>
+
+                <button class="add-person-btn" onclick="addPerson()">＋ 人を追加する（手動入力用）</button>
+
+                <div style="display:flex; gap:15px; margin-top:25px;">
+                    <button class="download-btn" onclick="generateFile()" style="margin-top:0;">📁 テキスト保存</button>
+                    <button class="submit-large-btn" onclick="submitToBBS()" style="margin-top:0;">🚀 掲示板に一括送信</button>
+                </div>
+            `;
+            
+            setDefaultDate();
+            addPerson();
+        }
+
+        // --- 報告書ツール用の機能群 ---
+        function setDefaultDate() {
+            const now = new Date();
+            document.getElementById('inputYear').value = now.getFullYear();
+            document.getElementById('inputMonth').value = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('inputDay').value = String(now.getDate()).padStart(2, '0');
+        }
+
+        function resetForm() {
+            if (!confirm('入力内容をすべてリセットして最初からやり直しますか？')) return;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('pasteInput').value = '';
+            setDefaultDate();
+            document.getElementById('fieldSummary').value = '';
+            document.getElementById('persons-container').innerHTML = '';
+            personCounter = 0;
+            addPerson();
+        }
+
+        function addPerson() {
+            personCounter++;
+            const id = personCounter;
+            const container = document.getElementById('persons-container');
+
+            const html = `
+            <div class="person-card" id="person-card-${id}">
+                <div class="person-header">
+                    <h3>👤 <span class="person-number">お子さん</span></h3>
+                    <button class="remove-btn" onclick="removePerson(${id})">削除</button>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ お子さんの名前</label><button class="btn-primary" onclick="copyText('fieldName_${id}', this)">コピー</button></div>
+                    <input type="text" id="fieldName_${id}" class="person-name" placeholder="例: まさ">
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ お子さんの取り組みの様子 (L列)</label><button class="btn-primary" onclick="copyText('fieldTorikumi_${id}', this)">コピー</button></div>
+                    <textarea id="fieldTorikumi_${id}" rows="5">①お子さんのやったこと\n\n②お子さんの取り組みの様子\n</textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 主な学習の方法</label><button class="btn-primary" onclick="copyText('fieldomonagakusyu_${id}', this)">コピー</button></div>
+                    <textarea id="fieldomonagakusyu_${id}" rows="1"></textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 理解度 (Q列)</label><button class="btn-primary" onclick="copyText('fieldRikaido_${id}', this)">コピー</button></div>
+                    <textarea id="fieldRikaido_${id}" rows="2"></textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ お子さんの褒めポイント (R列)</label><button class="btn-primary" onclick="copyText('fieldHome_${id}', this)">コピー</button></div>
+                    <textarea id="fieldHome_${id}" rows="2">・</textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 保護者満足度 (S列)</label><button class="btn-primary" onclick="copyText('fieldManzoku_${id}', this)">コピー</button></div>
+                    <textarea id="fieldManzoku_${id}" rows="1">満足度： </textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 保護者FB (U列)</label><button class="btn-primary" onclick="copyText('fieldFb_${id}', this)">コピー</button></div>
+                    <textarea id="fieldFb_${id}" rows="8">①誰に伝えられた \n②メンターから質問/話したこと\n\n③保護者返答/様子\n\n④保護者からの質問\n\n⑤メンターの解答\n</textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 次回のねらい (Y列)</label><button class="btn-primary" onclick="copyText('fieldNerai_${id}', this)">コピー</button></div>
+                    <textarea id="fieldNerai_${id}" rows="2"></textarea>
+                </div>
+
+                <div class="form-group" style="background:#fff;">
+                    <div class="header-area"><label>■ 次回やること (Z列)</label><button class="btn-primary" onclick="copyText('fieldYarukoto_${id}', this)">コピー</button></div>
+                    <textarea id="fieldYarukoto_${id}" rows="2">・</textarea>
+                </div>
+            </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            updatePersonNumbers();
+            return id;
+        }
+
+        function removePerson(id) {
+            const cards = document.querySelectorAll('.person-card');
+            if (cards.length <= 1) { alert('最低1人分の入力欄は必要です。'); return; }
+            document.getElementById(`person-card-${id}`).remove();
+            updatePersonNumbers();
+        }
+
+        function updatePersonNumbers() {
+            document.querySelectorAll('.person-number').forEach((el, index) => {
+                el.innerText = `${index + 1}人目`;
+            });
+        }
+
+        // 【新機能】掲示板への送信処理
+        function submitToBBS() {
+            let posts = getPosts();
+            let addedCount = 0;
+            const summary = document.getElementById('fieldSummary').value.trim();
+            const cards = document.querySelectorAll('.person-card');
+            
+            cards.forEach(card => {
+                const id = card.id.replace('person-card-', '');
+                const childName = document.getElementById(`fieldName_${id}`).value.trim() || "名無しのお子さん";
+                
+                const fields = [
+                    { label: "■ お子さんの取り組みの様子", value: document.getElementById(`fieldTorikumi_${id}`).value },
+                    { label: "■ 主な学習の方法", value: document.getElementById(`fieldomonagakusyu_${id}`).value },
+                    { label: "■ 理解度", value: document.getElementById(`fieldRikaido_${id}`).value },
+                    { label: "■ お子さんの褒めポイント", value: document.getElementById(`fieldHome_${id}`).value },
+                    { label: "■ 保護者満足度", value: document.getElementById(`fieldManzoku_${id}`).value },
+                    { label: "■ 保護者FB", value: document.getElementById(`fieldFb_${id}`).value },
+                    { label: "■ 次回のねらい", value: document.getElementById(`fieldNerai_${id}`).value },
+                    { label: "■ 次回やること", value: document.getElementById(`fieldYarukoto_${id}`).value }
+                ];
+
+                const now = new Date();
+                // 入力欄の日付を取得
+                const inputYear = document.getElementById('inputYear').value;
+                const inputMonth = String(document.getElementById('inputMonth').value).padStart(2, '0');
+                const inputDay = String(document.getElementById('inputDay').value).padStart(2, '0');
+                
+                // 取得した日付と現在時刻を組み合わせてタイムスタンプを作成
+                const timestamp = inputYear + '/' + 
+                                  inputMonth + '/' + 
+                                  inputDay + ' ' + 
+                                  String(now.getHours()).padStart(2, '0') + ':' + 
+                                  String(now.getMinutes()).padStart(2, '0');
+
+                posts.push({
+                    type: "report",
+                    name: childName,
+                    summary: summary,
+                    fields: fields,
+                    timestamp: timestamp
+                });
+                addedCount++;
+            });
+
+            if (addedCount > 0) {
+                savePosts(posts);
+                alert(`${addedCount}件の記録を掲示板に送信しました！\n親ウィンドウが自動的に更新されています。`);
+            }
+        }
+
+        // ==========================================
+        // 以下、既存のツール・ユーティリティ関数
+        // ==========================================
+        function processRawText(rawText, namesFromFileName = []) {
+            let textWithoutNewlines = rawText.replace(/\r?\n|\r/g, '');
+            let processedText = textWithoutNewlines.replace(/■/g, '\n■');
+            const text = processedText.replace(/^\n/, '');
+
+            let summaryText = "";
+            let firstNameFromSummary = "";
+            const summaryMatch = text.match(/■サマリ[ \t]*([^\r\n]+)/) || text.match(/■サマリ\s*\r?\n([^\r\n]+)/);
+            if (summaryMatch) {
+                let rawSummary = summaryMatch[1].trim();
+                const bracketMatch = rawSummary.match(/^(.*?)【(.*?)】$/) || rawSummary.match(/(.*?)【(.*?)】/);
+                if (bracketMatch) {
+                    summaryText = bracketMatch[1].trim();
+                    firstNameFromSummary = bracketMatch[2].trim();
+                } else {
+                    summaryText = rawSummary;
+                }
+            }
+            document.getElementById('fieldSummary').value = summaryText;
+
+            const chunks = text.split(/\r?\n?■お子さんの取り組みの様子/);
+            if (chunks.length <= 1) {
+                alert('テキスト内に「■お子さんの取り組みの様子」が見つかりませんでした。');
+                return;
+            }
+
+            document.getElementById('persons-container').innerHTML = ''; 
+            personCounter = 0;
+            const numPeople = chunks.length - 1;
+            const fieldNames = [ "■主な学習の方法","■理解度", "■お子さんの褒めポイント", "■保護者満足度", "■保護者FB", "■次回のねらい", "■次回やること" ];
+            let namesList = [];
+            if (firstNameFromSummary) namesList[0] = firstNameFromSummary;
+
+            for (let i = 0; i < numPeople; i++) {
+                const chunk = chunks[i + 1] || "";
+                let fields = {};
+                let indices = [];
+                for (let fn of fieldNames) {
+                    let idx = chunk.indexOf(fn);
+                    while (idx !== -1) {
+                        if (idx === 0 || chunk.charAt(idx - 1) === '\n') {
+                            indices.push({name: fn, index: idx, length: fn.length});
+                            break;
+                        }
+                        idx = chunk.indexOf(fn, idx + 1);
+                    }
+                }
+                indices.sort((a, b) => a.index - b.index);
+                let firstNextHeaderIndex = indices.length > 0 ? indices[0].index : chunk.length;
+                fields["■お子さんの取り組みの様子"] = chunk.substring(0, firstNextHeaderIndex).replace(/^\r?\n/, '');
+
+                for (let j = 0; j < indices.length; j++) {
+                    let currentHeader = indices[j];
+                    let nextHeaderIndex = (j + 1 < indices.length) ? indices[j+1].index : chunk.length;
+                    let contentStart = currentHeader.index + currentHeader.length;
+                    fields[currentHeader.name] = chunk.substring(contentStart, nextHeaderIndex).replace(/^\r?\n/, '');
+                }
+
+                if (fields["■次回やること"]) {
+                    let yarukotoText = fields["■次回やること"].trimEnd();
+                    const bracketMatch = yarukotoText.match(/^(.*?)【(.*?)】$/s) || yarukotoText.match(/(.*?)【(.*?)】/);
+                    if (bracketMatch) {
+                        fields["■次回やること"] = bracketMatch[1].trimEnd();
+                        namesList[i + 1] = bracketMatch[2].trim();
+                    }
+                }
+
+                let childName = namesList[i] || (namesFromFileName && namesFromFileName[i]) || `お子さん${i + 1}`;
+                const id = addPerson();
+                document.getElementById(`fieldName_${id}`).value = childName;
+                document.getElementById(`fieldTorikumi_${id}`).value = fields["■お子さんの取り組みの様子"] ? fields["■お子さんの取り組みの様子"].trimEnd() : '';
+                document.getElementById(`fieldomonagakusyu_${id}`).value = fields["■主な学習の方法"] ? fields["■主な学習の方法"].trimEnd() : '';
+                document.getElementById(`fieldRikaido_${id}`).value = fields["■理解度"] ? fields["■理解度"].trimEnd() : '';
+                document.getElementById(`fieldHome_${id}`).value = fields["■お子さんの褒めポイント"] ? fields["■お子さんの褒めポイント"].trimEnd() : '';
+                document.getElementById(`fieldManzoku_${id}`).value = fields["■保護者満足度"] ? fields["■保護者満足度"].trimEnd() : '';
+                document.getElementById(`fieldFb_${id}`).value = fields["■保護者FB"] ? fields["■保護者FB"].trimEnd() : '';
+                document.getElementById(`fieldNerai_${id}`).value = fields["■次回のねらい"] ? fields["■次回のねらい"].trimEnd() : '';
+                document.getElementById(`fieldYarukoto_${id}`).value = fields["■次回やること"] ? fields["■次回やること"].trimEnd() : '';
+            }
+            alert('読み込みとテキストの整形が完了しました！');
+        }
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+            const nameParts = fileNameWithoutExt.split('_');
+            let namesFromFileName = [];
+            if (nameParts.length >= 3) {
+                document.getElementById('inputYear').value = nameParts[0];
+                document.getElementById('inputMonth').value = nameParts[1];
+                document.getElementById('inputDay').value = nameParts[2];
+                namesFromFileName = nameParts.slice(3).filter(n => n.trim() !== '');
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) { processRawText(e.target.result, namesFromFileName); event.target.value = ''; };
+            reader.readAsText(file);
+        }
+
+        function loadPastedText() {
+            const pastedText = document.getElementById('pasteInput').value;
+            if (!pastedText.trim()) { alert('テキストが入力されていません。'); return; }
+            processRawText(pastedText, []);
+        }
+
+        function generateFile() {
+            const year = document.getElementById('inputYear').value;
+            const month = document.getElementById('inputMonth').value.padStart(2, '0');
+            const day = document.getElementById('inputDay').value.padStart(2, '0');
+            let nameList = [];
+            document.querySelectorAll('.person-name').forEach(input => {
+                const name = input.value.trim();
+                if(name) nameList.push(name);
+            });
+            if (nameList.length === 0) { alert('少なくとも1人のお子さんの名前を入力してください。'); return; }
+            const fileName = `${year}_${month}_${day}_${nameList.join('_')}.txt`;
+            let fullTextArray = [];
+            const summary = document.getElementById('fieldSummary').value.trim();
+            let safeSummary = summary.replace(/\r?\n/g, ' '); 
+            const cards = document.querySelectorAll('.person-card');
+            const isMultiple = cards.length >= 2;
+            if (safeSummary) {
+                if (isMultiple) {
+                    const firstId = cards[0].id.replace('person-card-', '');
+                    const firstName = document.getElementById(`fieldName_${firstId}`).value.trim();
+                    safeSummary = `${safeSummary}【${firstName}】`;
+                }
+                fullTextArray.push(`■サマリ\n${safeSummary}\n`);
+            }
+            cards.forEach((card, index) => {
+                const id = card.id.replace('person-card-', '');
+                const childName = document.getElementById(`fieldName_${id}`).value.trim();
+                let yarukoto = document.getElementById(`fieldYarukoto_${id}`).value;
+                if (isMultiple && index < cards.length - 1) {
+                    const nextId = cards[index + 1].id.replace('person-card-', '');
+                    const nextName = document.getElementById(`fieldName_${nextId}`).value.trim();
+                    yarukoto = `${yarukoto.trimEnd()}【${nextName}】`;
+                }
+                const text = `${childName}\n■お子さんの取り組みの様子\n${document.getElementById(`fieldTorikumi_${id}`).value}\n■主な学習の方法\n${document.getElementById(`fieldomonagakusyu_${id}`).value}\n■理解度\n${document.getElementById(`fieldRikaido_${id}`).value}\n■お子さんの褒めポイント\n${document.getElementById(`fieldHome_${id}`).value}\n■保護者満足度\n${document.getElementById(`fieldManzoku_${id}`).value}\n■保護者FB\n${document.getElementById(`fieldFb_${id}`).value}\n■次回のねらい\n${document.getElementById(`fieldNerai_${id}`).value}\n■次回やること\n${yarukoto}`;
+                fullTextArray.push(text);
+            });
+            const blob = new Blob([fullTextArray.join('\n')], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 直接入力欄をコピー
+        function copyText(elementId, btnElement) {
+            const targetElement = document.getElementById(elementId);
+            targetElement.select();
+            targetElement.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                const originalText = btnElement.innerText;
+                btnElement.innerText = 'コピー済！';
+                btnElement.classList.add('copied');
+                setTimeout(() => { btnElement.innerText = originalText; btnElement.classList.remove('copied'); }, 2000);
+                window.getSelection().removeAllRanges();
+            } catch (err) { alert('コピーに失敗しました。'); }
+        }
+
+        // 文字列を非表示要素経由でコピー
+        function copyEncodedString(encodedText, btnElement) {
+            const text = decodeURIComponent(encodedText);
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const originalText = btnElement.innerText;
+                btnElement.innerText = 'コピー済！';
+                btnElement.classList.add('copied');
+                setTimeout(() => { btnElement.innerText = originalText; btnElement.classList.remove('copied'); }, 2000);
+            } catch (err) { alert('コピーに失敗しました。'); }
+            document.body.removeChild(textarea);
+        }
+
+        // JSONファイルの入出力
+        function loadJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    if (Array.isArray(jsonData)) {
+                        savePosts(jsonData); updatePostList();
+                        alert("JSONファイルからデータを読み込みました！");
+                    } else { alert("エラー: 正しい形式のJSON配列ではありません。"); }
+                } catch (err) { alert("JSONの読み込みに失敗しました: " + err.message); }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+        function exportJSON() {
+            const posts = getPosts();
+            if (posts.length === 0 && !confirm("データが空ですが保存しますか？")) return;
+            const jsonStr = JSON.stringify(posts, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const now = new Date();
+            const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + "_" + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+            a.download = `bbs_data_${dateStr}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+        function escapeHTML(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
+
+        // 実行開始
+        init();
+    </script>
+</body>
+</html>
