@@ -2,18 +2,20 @@
 <!DOCTYPE html>
 <html lang="ja">
 <!--
+   
     ページの表示場所（上部メニュー／左ランチャー／中央検索／右ショートカット）を定義します。
     画面デザインは amaken.css、クリック操作・保存処理は amasuku.js が担当します。
     各要素の id は JavaScript から参照されるため、変更する場合は JS 側も確認してください。
+    スマホ幅では上部管理メニューが折りたたまれ、検索→フォルダー→ショートカットの順に表示します。
 -->
 <head>
     <!-- 01. ページ設定：文字コード・表示幅・ページ名 -->
     <meta charset="UTF-8">
-    <link rel="icon" href="amabasi.ico" type="image/x-icon">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>天橋　歩の検索</title>
 
-   
+    <link rel="icon" href="amabasi.ico" type="image/x-icon">
 
     <!-- 02. JavaScript読込：defer によりHTML解析後に実行 -->
     <script src="./amasuku.js" defer></script>
@@ -26,6 +28,15 @@
      04. 上部メニュー：翻訳・フォルダー管理・Steam・保存／読込・テーマ変更
      ============================================================ -->
 <header class="favorites-bar">
+    <!-- 04-0. スマホ専用の上部バー：タイトルと管理メニュー開閉 -->
+    <div class="mobile-header-row">
+        <a class="mobile-brand" href="#search-section">天橋　歩の検索</a>
+        <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle"
+                aria-expanded="false" aria-controls="mobile-action-panel">☰ メニュー</button>
+    </div>
+
+    <!-- PCでは横並び、スマホではメニュー内に表示される操作ボタン -->
+    <div class="header-controls" id="mobile-action-panel">
     <!-- 04-1. 翻訳フォーム：送信時に JS がGoogle翻訳を開く -->
     <form id="translate-form" class="translate-box">
         <span class="translate-symbol">🌐</span>
@@ -35,6 +46,10 @@
     <!-- 04-2. HTMLフォルダーの選択と権限の復元 -->
     <button class="action-btn folder-select-action" id="select-html-folder-btn">📁 HTMLフォルダーを選択</button>
     <button id="restore-folder-btn" class="action-btn folder-restore-action" hidden>🔄 フォルダを許可して復元</button>
+
+    <!-- 04-2b. 携帯向け：フォルダーピッカーがない場合のHTMLファイル選択 -->
+    <input type="file" id="html-files-fallback-input" accept=".html,.htm,text/html" multiple hidden>
+    <button type="button" class="action-btn mobile-only-action" id="select-html-files-btn">📄 HTMLファイルを選択</button>
 
     <!-- 04-3. .url / .webloc ファイルをフォルダー単位で読み込み -->
     <!-- 非表示inputは「URLを追加」ボタンから開く -->
@@ -55,6 +70,9 @@
         <!-- 明るい/暗いテーマの切り替え -->
         <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
     </div>
+    </div>
+   
+    
 </header>
 
 
@@ -62,14 +80,15 @@
      05. 左ランチャー：HTMLファイル・URLフォルダーの一覧
      #launcher-content の中身は JavaScript が生成します。
      ============================================================ -->
-<aside class="left-launcher">
+<aside class="left-launcher" id="folders-section" aria-label="フォルダー一覧">
+    <h2 class="mobile-section-title">フォルダー <span>HTML・登録URL</span></h2>
     <div class="launcher-content" id="launcher-content"></div>
 </aside>
 
 <!-- ============================================================
      06. 中央検索：キーワードを入力してGoogle検索を実行
      ============================================================ -->
-<main class="container">
+<main class="container" id="search-section">
     <!-- 検索ページのタイトル -->
     <h1 class="logo">
         <span class="red">天橋　歩の検索</span>
@@ -78,7 +97,7 @@
     <form id="search-form">
         <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input type="text" name="q" class="search-input" placeholder="天橋　歩の検索" required autocomplete="off" autofocus>
+            <input type="text" name="q" class="search-input" placeholder="天橋　歩の検索" required autocomplete="off">
         </div>
         <div class="buttons">
             <button type="submit">天橋　歩の検索</button>
@@ -90,8 +109,19 @@
      07. 右ショートカット：任意URL／Steamゲームを登録・並び替え・削除
      #shortcut-list の中身は JavaScript が生成します。
      ============================================================ -->
-<aside class="sidebar">
+<aside class="sidebar" id="shortcuts-section" aria-label="ショートカット一覧">
+    <h2 class="mobile-section-title">ショートカット <span>Web・Steamゲーム</span></h2>
     <div class="shortcuts-container" id="shortcut-list"></div>
 </aside>
+
+<!-- ============================================================
+     08. スマホ専用の下部ナビ：画面の3領域へ素早く移動
+     PCではCSSで非表示にする。
+     ============================================================ -->
+<nav class="mobile-bottom-nav" aria-label="携帯用ナビゲーション">
+    <a href="#search-section"><span aria-hidden="true">🔎</span><span>検索</span></a>
+    <a href="#folders-section"><span aria-hidden="true">📁</span><span>フォルダー</span></a>
+    <a href="#shortcuts-section"><span aria-hidden="true">⭐</span><span>ショートカット</span></a>
+</nav>
 </body>
 </html>
