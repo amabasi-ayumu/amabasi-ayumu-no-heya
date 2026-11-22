@@ -540,7 +540,7 @@ body {
     margin-top: -10vh;
 }
 
-/* 07-1. 中央の「タイトルロゴ」ロゴ */
+/* 07-1. 中央の「タイトル」ロゴ */
 .logo {
     font-size: 80px;
     margin-bottom: 25px;
@@ -628,3 +628,425 @@ body {
 .danger-action { color: var(--logo-r); }
 [hidden] { display: none !important; }
 .translate-symbol { font-size: 14px; }
+
+
+/* ========================================================================
+   09. 携帯・タブレット対応（幅900px以下）
+   PCの「ホバーで開く」左右バーを、タップ可能な縦並びカードへ変更する。
+   HTML・JavaScript本体はPCと共通。画面幅で表示を自動切り替えする。
+   ======================================================================== */
+
+/* 09-0. PCではスマホ専用部品を隠す。既存メニューは従来どおり横並び。 */
+.mobile-header-row,
+.mobile-bottom-nav,
+.mobile-section-title,
+.mobile-only-action,
+.steam-mobile-note,
+.folder-expand-btn { display: none; }
+
+.header-controls {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+/* ショートカット操作をリンクの外に配置し、タップやキーボード操作を可能にする。 */
+.shortcut-row {
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+}
+.sidebar:hover .shortcut-row:hover .shortcut-controls,
+.sidebar:focus-within .shortcut-row:focus-within .shortcut-controls {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+    /* 09-1. ページ全体：横の固定バーを廃止し、検索→一覧の縦方向へ。 */
+    html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+    body {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 0 16px calc(88px + env(safe-area-inset-bottom, 0px));
+        overflow-x: hidden;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* 09-2. 上部：タイトルと「☰ メニュー」を固定表示。 */
+    .favorites-bar {
+        position: sticky;
+        top: 0;
+        z-index: 300;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 0;
+        width: calc(100% + 32px);
+        min-height: 0;
+        padding: 0 16px;
+        margin: 0 -16px;
+        box-shadow: 0 2px 8px var(--shadow-color);
+    }
+    .mobile-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 58px;
+        width: 100%;
+    }
+    .mobile-brand {
+        color: var(--logo-r);
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -.03em;
+    }
+    .mobile-menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: 13px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .mobile-menu-toggle[aria-expanded="true"] {
+        border-color: var(--logo-b);
+        color: var(--logo-b);
+    }
+    .header-controls {
+        display: none;
+        flex: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 9px;
+        width: 100%;
+        padding: 12px 0 16px;
+        border-top: 1px solid var(--border-color);
+        max-height: min(75vh, 650px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+    .header-controls.is-open { display: flex; }
+    .translate-box {
+        width: 100%;
+        min-height: 44px;
+        margin: 0;
+        border-radius: 12px;
+    }
+    .translate-input {
+        width: 100%;
+        min-width: 0;
+        flex: 1;
+        font-size: 16px; /* iPhoneの入力時ズームを防ぐ */
+    }
+    .header-controls > .action-btn {
+        width: 100%;
+        min-height: 44px;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        text-align: center;
+        font-size: 14px;
+    }
+    .mobile-only-action { display: block; }
+    .right-tools {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+        margin: 3px 0 0;
+    }
+    .right-tools .action-btn,
+    .right-tools .theme-btn {
+        min-width: 0;
+        min-height: 44px;
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 14px;
+    }
+    .right-tools .theme-btn { width: 100%; }
+    .steam-mobile-note {
+        display: block;
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--text-color);
+        opacity: .76;
+    }
+
+    /* 09-3. 中央検索：1画面幅に収め、親指で押せるボタンへ。 */
+    .container {
+        order: 1;
+        width: 100%;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 34px 0 28px;
+        text-align: center;
+        scroll-margin-top: 70px;
+    }
+    .logo {
+        margin: 0 0 20px;
+        font-size: clamp(38px, 10vw, 62px);
+        letter-spacing: -1.5px;
+    }
+    .search-box {
+        width: 100%;
+        max-width: none;
+        min-height: 54px;
+        padding: 12px 16px;
+        margin-bottom: 14px;
+    }
+    .search-input { min-width: 0; font-size: 16px; }
+    .buttons button {
+        min-height: 46px;
+        min-width: 140px;
+        margin: 0;
+        border-radius: 14px;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    /* 09-4. 一覧共通：左右固定・マウスホバー依存を無効化。 */
+    .left-launcher, .sidebar {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        max-width: 680px;
+        height: auto;
+        min-height: 0;
+        padding: 0;
+        margin: 0 auto 26px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        overflow: visible;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        z-index: auto;
+        scroll-margin-top: 72px;
+    }
+    .left-launcher:hover, .sidebar:hover {
+        width: 100%;
+        box-shadow: none;
+        overflow: visible;
+    }
+    .left-launcher { order: 2; }
+    .sidebar { order: 3; }
+    .mobile-section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin: 0 0 12px;
+        padding: 0 3px;
+        font-size: 18px;
+        color: var(--text-color);
+    }
+    .mobile-section-title span {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--icon-color);
+    }
+
+    /* 09-5. 左ランチャー：フォルダー単位で開閉するカード。 */
+    .launcher-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+    .folder-col,
+    .folder-col:hover,
+    .folder-col.pinned {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        height: auto;
+        padding: 0;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        background: var(--bar-bg);
+        overflow: hidden;
+        transition: none;
+    }
+    .folder-title,
+    .folder-col:hover .folder-title,
+    .folder-col.pinned .folder-title {
+        margin: 0;
+        padding: 0;
+        border-bottom: 0;
+        text-align: left;
+    }
+    .folder-title-inner,
+    .folder-col:hover .folder-title-inner,
+    .folder-col.pinned .folder-title-inner {
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 52px;
+        padding: 8px 14px;
+    }
+    .folder-title-inner > span { min-width: 0; overflow-wrap: anywhere; }
+    .folder-title .title-text,
+    .folder-col:hover .folder-title .title-text { display: inline; }
+    .folder-expand-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 68px;
+        min-height: 36px;
+        padding: 4px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-color);
+        background: var(--bg-color);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .pin-btn, .folder-col:hover .pin-btn, .folder-col.pinned .pin-btn { display: none; }
+    .folder-col .dock-btn { display: none; }
+    .folder-col.mobile-expanded .dock-btn {
+        display: flex;
+        justify-content: flex-start;
+        min-height: 48px;
+        height: auto;
+        padding: 3px 0;
+        border-top: 1px solid var(--border-color);
+    }
+    .folder-col.mobile-expanded .folder-title { border-bottom: 0; }
+    .folder-col .dock-btn span.text,
+    .folder-col.pinned .dock-btn span.text {
+        display: inline-block;
+        min-width: 0;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        font-size: 14px;
+    }
+    .icon-wrapper { width: 52px; min-width: 52px; height: 44px; }
+
+    /* 09-6. 右ショートカット：常時リンク名と編集ボタンを表示。 */
+    .shortcuts-container { gap: 9px; }
+    .shortcut-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 58px;
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        background: var(--bar-bg);
+        overflow: hidden;
+    }
+    .shortcut {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        height: auto;
+        min-height: 56px;
+        padding-right: 0;
+    }
+    .shortcut-icon { width: 50px; min-width: 50px; height: 50px; }
+    .shortcut span.text,
+    .sidebar:hover .shortcut span.text {
+        display: block;
+        flex: 1;
+        min-width: 0;
+        padding: 0 4px 0 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 14px;
+    }
+    .shortcut-controls,
+    .sidebar:hover .shortcut-row:hover .shortcut-controls {
+        position: static;
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 4px;
+        padding: 0 7px 0 2px;
+        transform: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .ctrl-btn {
+        width: 34px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    /* 09-7. 下部ナビ：3つの領域へジャンプ。端末下端の安全余白に対応。 */
+    .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 290;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        min-height: 60px;
+        padding: 5px 8px calc(5px + env(safe-area-inset-bottom, 0px));
+        border-top: 1px solid var(--border-color);
+        background: var(--bar-bg);
+        box-shadow: 0 -2px 10px var(--shadow-color);
+    }
+    .mobile-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-height: 47px;
+        border-radius: 12px;
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 700;
+        text-align: center;
+    }
+    .mobile-bottom-nav a span:first-child { font-size: 20px; }
+    .mobile-bottom-nav a:active, .mobile-bottom-nav a:focus-visible {
+        color: var(--logo-b);
+        background: var(--hover-bg);
+    }
+}
+
+/* 10. 小型スマートフォン：管理メニューと右ショートカットの窮屈さを軽減。 */
+@media (max-width: 380px) {
+    body { padding-left: 12px; padding-right: 12px; }
+    .favorites-bar { width: calc(100% + 24px); margin: 0 -12px; padding: 0 12px; }
+    .logo { font-size: 38px; }
+    .ctrl-btn { width: 30px; height: 34px; }
+    .shortcut-icon { width: 42px; min-width: 42px; }
+}
+
+/* 11. 動きが苦手な利用環境では滑らかなスクロールを停止。 */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+}

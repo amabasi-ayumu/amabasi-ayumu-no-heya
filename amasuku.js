@@ -1,14 +1,15 @@
 'use strict';
 
 // ============================================================================
-// / amasuku.js : 機能別コード案内
+//  amasuku.js : 機能別コード案内
 // 01 URL・Steamの検証  02 名前／JSON処理  03 保存データの検証
 // 04 Web起動           05 IndexedDB    06 HTMLフォルダー操作
 // 07 HTMLプレビュー    08 URLファイル入力 09 左ランチャー描画
 // 10 右ショートカット  11 JSON入出力     12 イベント・初期化
-// ※ 実行処理は変更せず、見出しと各関数の説明コメントを追加。
+// ※ Steam対応・セキュリティ対策を維持し、携帯向けの開閉UI・ファイル選択を追加。
 // ============================================================================
 
+// まさ検索: セキュリティ改修版
 // 保存キーと画面のCSSクラスは従来のまま維持する。
 // 保存先の名前と読込制限。既存のデータとの互換性のため保存キーは維持する。
 const DB_NAME = 'MasaSearchDB';
@@ -395,9 +396,33 @@ async function processDirectoryHandle(directory) {
 }
 
 /**
- * フォルダー選択ダイアログを開き、選択結果を記録して一覧を更新する。
+ * 06-1. 携帯・Safariなど、フォルダーピッカー非対応時の代替処理。
+ * 選択されたHTMLファイルを現在のページ内だけに保持する。
+ * 端末の権限モデル上、ページ再読込後の再選択は必要。
+ */
+function importHtmlFiles(event) {
+    const files = Array.from(event.target.files || []).filter(file => /\.html?$/i.test(file.name));
+    event.target.value = '';
+    if (!files.length) return;
+    htmlFileHandles = Object.create(null);
+    for (const file of files) {
+        // openHTMLが使うgetFileインターフェイスと互換にする。
+        htmlFileHandles[file.name] = { getFile: async () => file };
+    }
+    htmlFolderHandleName = '選択したHTML';
+    isFolderRestored = false;
+    showRestoreButton(false);
+    renderFavorites();
+}
+
+/**
+ * フォルダー選択ダイアログを開く。非対応端末ではHTMLファイル選択へ切り替える。
  */
 async function selectHtmlFolder() {
+    if (typeof window.showDirectoryPicker !== 'function') {
+        document.getElementById('html-files-fallback-input').click();
+        return;
+    }
     try {
         const directory = await window.showDirectoryPicker({id: 'masaHtmlFolderPicker'});
         await saveDirectoryHandle(directory);
@@ -550,7 +575,20 @@ function createFolderHeader(titleText, column) {
         }
         writeStoredJSON('myPinnedFolders', next);
     });
-    inner.append(label, pinButton);
+    // 09. 携帯ではhoverがないため、表示用の開閉ボタンを用意する。
+    const expandButton = document.createElement('button');
+    expandButton.type = 'button';
+    expandButton.className = 'folder-expand-btn';
+    expandButton.textContent = '開く';
+    expandButton.setAttribute('aria-expanded', 'false');
+    expandButton.setAttribute('aria-label', titleText + 'を開く');
+    expandButton.addEventListener('click', () => {
+        const open = column.classList.toggle('mobile-expanded');
+        expandButton.setAttribute('aria-expanded', String(open));
+        expandButton.setAttribute('aria-label', titleText + (open ? 'を閉じる' : 'を開く'));
+        expandButton.textContent = open ? '閉じる' : '開く';
+    });
+    inner.append(label, pinButton, expandButton);
     header.appendChild(inner);
     return header;
 }
@@ -678,15 +716,23 @@ function renderShortcuts() {
             ['▼', '下へ移動', 'ctrl-btn' + (index === shortcuts.length - 1 ? ' disabled' : ''), event => moveShortcut(event, index, 1)],
             ['×', '削除', 'ctrl-btn del-btn', event => deleteShortcut(event, index)]
         ]) {
-            const button = document.createElement('div');
+            // リンク内にボタンを入れず、兄弟要素として配置する。
+            // 携帯のタップ操作とキーボード操作が分かれるようにする。
+            const button = document.createElement('button');
+            button.type = 'button';
             button.className = className;
             button.textContent = label;
             button.title = title;
+            button.setAttribute('aria-label', sc.name + '：' + title);
+            button.disabled = className.includes('disabled');
             button.addEventListener('click', action);
             controls.appendChild(button);
         }
-        a.append(makeIcon(sc.url, 64), span, controls);
-        container.appendChild(a);
+        a.append(makeIcon(sc.url, 64), span);
+        const row = document.createElement('div');
+        row.className = 'shortcut-row';
+        row.append(a, controls);
+        container.appendChild(row);
     });
 }
 
@@ -807,6 +853,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (phrase) openInBackground('https://translate.google.co.jp/?sl=auto&tl=ja&text=' + encodeURIComponent(phrase) + '&op=translate');
     });
     document.getElementById('select-html-folder-btn').addEventListener('click', selectHtmlFolder);
+    document.getElementById('select-html-files-btn').addEventListener('click', () => document.getElementById('html-files-fallback-input').click());
+    document.getElementById('html-files-fallback-input').addEventListener('change', importHtmlFiles);
     document.getElementById('restore-folder-btn').addEventListener('click', forceRestoreHtmlFolder);
     document.getElementById('url-folder-input').addEventListener('change', importUrlFolder);
     document.getElementById('add-url-btn').addEventListener('click', () => document.getElementById('url-folder-input').click());
@@ -823,6 +871,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('myTheme', next);
         themeButton.textContent = next === 'dark' ? '☀️' : '🌙';
     });
+    // 12-1. スマートフォン用メニューの開閉。データや既存機能はPCと共通。
+    const mobileMenuButton = document.getElementById('mobile-menu-toggle');
+    const mobilePanel = document.getElementById('mobile-action-panel');
+    const closeMobileMenu = () => {
+        mobilePanel.classList.remove('is-open');
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+        mobileMenuButton.textContent = '☰ メニュー';
+    };
+    mobileMenuButton.addEventListener('click', () => {
+        const open = mobilePanel.classList.toggle('is-open');
+        mobileMenuButton.setAttribute('aria-expanded', String(open));
+        mobileMenuButton.textContent = open ? '✕ 閉じる' : '☰ メニュー';
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeMobileMenu();
+    });
+    document.querySelectorAll('.mobile-bottom-nav a').forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+    });
+    // スマホでは初期表示時にキーボードを自動表示しない。
+    if (!window.matchMedia('(max-width: 900px)').matches) {
+        document.querySelector('.search-input').focus({preventScroll: true});
+    }
     renderFavorites();
     renderShortcuts();
     await attemptSilentRestore();
