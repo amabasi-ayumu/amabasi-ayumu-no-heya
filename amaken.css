@@ -1,0 +1,570 @@
+
+:root {
+    --bg-color: #ffffff;
+    --text-color: #3c4043;
+    --bar-bg: #f8f9fa;
+    --border-color: #dfe1e5;
+    --hover-bg: #f1f3f4;
+    --icon-bg: #ffffff;
+    --btn-bg: #f8f9fa;
+    --shadow-color: rgba(0,0,0,0.15);
+    --search-shadow: rgba(32, 33, 36, 0.28);
+    --icon-color: #9aa0a6;
+    --logo-b: #4285f4;
+    --logo-r: #ea4335;
+    --logo-y: #fbbc05;
+    --logo-g: #34a853;
+}
+
+[data-theme="dark"] {
+    --bg-color: #202124;
+    --text-color: #e8eaed;
+    --bar-bg: #303134;
+    --border-color: #5f6368;
+    --hover-bg: #3c4043;
+    --icon-bg: #303134;
+    --btn-bg: #303134;
+    --shadow-color: rgba(0,0,0,0.5);
+    --search-shadow: rgba(0, 0, 0, 0.5);
+    --icon-color: #9aa0a6;
+    --logo-b: #8ab4f8;
+    --logo-r: #f28b82;
+    --logo-y: #fde293;
+    --logo-g: #81c995;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Meiryo, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding-left: 60px;
+    padding-right: 60px;
+    padding-top: 60px;
+    box-sizing: border-box;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* ===== ツールバー ===== */
+.favorites-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    min-height: 45px;
+    background-color: var(--bar-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    padding: 5px 15px;
+    z-index: 100;
+    gap: 5px;
+    transition: background-color 0.3s;
+    flex-wrap: wrap;
+}
+
+.translate-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 4px 12px;
+    background-color: var(--bg-color);
+    margin-right: 5px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+    .translate-box:focus-within {
+        border-color: var(--logo-b);
+        box-shadow: 0 0 0 1px var(--logo-b);
+    }
+
+.translate-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 13px;
+    width: 120px;
+    margin-left: 6px;
+}
+
+    .translate-input::placeholder {
+        color: var(--icon-color);
+    }
+
+.action-btn {
+    background: transparent;
+    border: none;
+    color: var(--logo-b);
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 16px;
+    transition: background-color 0.2s;
+}
+
+    .action-btn:hover {
+        background-color: var(--hover-bg);
+    }
+
+.right-tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.theme-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    color: var(--text-color);
+}
+
+    .theme-btn:hover {
+        background-color: var(--hover-bg);
+    }
+
+/* ===== 左側のランチャー ===== */
+.left-launcher {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: 65vh;
+    min-width: 60px;
+    background-color: var(--bar-bg);
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-bottom-right-radius: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    z-index: 200;
+    overflow: hidden;
+    box-shadow: none;
+    transition: box-shadow 0.2s;
+}
+
+    .left-launcher:hover {
+        box-shadow: 4px 4px 16px var(--shadow-color);
+    }
+
+.launcher-content {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+    .launcher-content::-webkit-scrollbar {
+        height: 8px;
+    }
+
+    .launcher-content::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+.folder-col {
+    width: 60px;
+    min-width: 60px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    transition: width 0.2s ease, min-width 0.2s ease, background-color 0.2s ease;
+}
+
+    .folder-col:hover {
+        width: auto;
+        min-width: 220px;
+        max-width: 320px;
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .folder-col::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .folder-col::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+    }
+
+.folder-title {
+    padding: 0 10px 10px 10px;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 5px;
+    text-align: center;
+    word-break: break-word;
+}
+
+/* フォルダ名とピン留めボタンのレイアウト */
+.folder-title-inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.folder-col:hover .folder-title, .folder-col.pinned .folder-title {
+    text-align: left;
+    padding: 0 15px 10px 15px;
+}
+
+.folder-col:hover .folder-title-inner, .folder-col.pinned .folder-title-inner {
+    justify-content: space-between;
+}
+
+.folder-title .title-text {
+    display: none;
+}
+
+.folder-col:hover .folder-title .title-text {
+    display: inline;
+}
+
+/* ===== フォルダーの固定（ピン留め）用スタイル ===== */
+.folder-col.pinned {
+    width: auto;
+    min-width: 220px;
+    max-width: 320px;
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+    .folder-col.pinned .folder-title .title-text {
+        display: inline;
+    }
+
+    .folder-col.pinned .dock-btn {
+        justify-content: flex-start;
+    }
+
+        .folder-col.pinned .dock-btn span.text {
+            display: inline-block;
+        }
+
+.pin-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: none;
+    margin-left: 5px;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+    .pin-btn:hover {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+
+.folder-col:hover .pin-btn, .folder-col.pinned .pin-btn {
+    display: inline-block;
+}
+
+.dock-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 40px;
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    color: var(--text-color);
+    font-size: 13px;
+    box-sizing: border-box;
+}
+
+.folder-col:hover .dock-btn {
+    justify-content: flex-start;
+}
+
+.dock-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.icon-wrapper {
+    width: 60px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.dock-btn img, .dock-btn svg {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: contain;
+}
+
+.dock-btn span.text {
+    display: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.folder-col:hover .dock-btn span.text {
+    display: inline-block;
+}
+
+/* ===== 右側のサイドバー ===== */
+.sidebar {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    width: 60px;
+    height: 65vh;
+    background-color: var(--bar-bg);
+    border-left: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    border-bottom-left-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    z-index: 200;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+    .sidebar:hover {
+        width: 260px;
+        box-shadow: -4px 4px 16px var(--shadow-color);
+        overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+.shortcuts-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.shortcut {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 44px;
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+    color: var(--text-color);
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
+    padding: 0;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+    .shortcut:hover {
+        background-color: var(--hover-bg);
+    }
+
+.shortcut-icon {
+    width: 60px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: var(--icon-color);
+}
+
+    .shortcut-icon img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: contain;
+    }
+
+.shortcut span.text {
+    display: none;
+    padding-right: 80px;
+}
+
+.sidebar:hover .shortcut span.text {
+    display: inline;
+}
+
+/* 操作ボタン群（▲ ▼ ×） */
+.shortcut-controls {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.sidebar:hover .shortcut:hover .shortcut-controls {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ctrl-btn {
+    width: 22px;
+    height: 22px;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 9px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+    .ctrl-btn:hover {
+        background-color: var(--hover-bg);
+        border-color: var(--logo-b);
+        color: var(--logo-b);
+    }
+
+    .ctrl-btn.del-btn:hover {
+        background-color: var(--logo-r);
+        border-color: var(--logo-r);
+        color: white;
+    }
+
+    .ctrl-btn.disabled {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+/* ===== 中央検索 ===== */
+.container {
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+    margin-top: -10vh;
+}
+
+.logo {
+    font-size: 80px;
+    margin-bottom: 25px;
+    letter-spacing: -2px;
+    color: var(--logo-b);
+    transition: color 0.3s;
+}
+
+    .logo .red {
+        color: var(--logo-r);
+    }
+
+    .logo .yellow {
+        color: var(--logo-y);
+    }
+
+    .logo .green {
+        color: var(--logo-g);
+    }
+
+.search-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 10px 20px;
+    margin: 0 auto 30px auto;
+    width: 80%;
+    max-width: 580px;
+    transition: box-shadow 0.2s, background-color 0.3s;
+    background-color: var(--bg-color);
+}
+
+    .search-box:hover, .search-box:focus-within {
+        box-shadow: 0 1px 6px var(--search-shadow);
+        border-color: transparent;
+    }
+
+.search-icon {
+    color: var(--icon-color);
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 16px;
+    background-color: transparent;
+    color: var(--text-color);
+}
+
+    .search-input::placeholder {
+        color: var(--icon-color);
+    }
+
+.buttons button {
+    background-color: var(--btn-bg);
+    border: 1px solid var(--btn-bg);
+    border-radius: 4px;
+    color: var(--text-color);
+    font-size: 14px;
+    margin: 0 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .buttons button:hover {
+        background-color: var(--hover-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+    }
+
