@@ -1,4 +1,12 @@
 
+/* ========================================================================
+   amaken.css : 機能別スタイル目次
+   01 明るいテーマ／02 暗いテーマ／03 ページ全体／04 上部メニュー
+   05 左ランチャー／06 右ショートカット／07 中央検索／08 その他
+   色をまとめて変える場合は 01・02 の CSS変数を修正してください。
+   ======================================================================== */
+
+/* 01. 明るいテーマの共通色（--bg-color 等は他のスタイルから参照） */
 :root {
     --bg-color: #ffffff;
     --text-color: #3c4043;
@@ -16,6 +24,7 @@
     --logo-g: #34a853;
 }
 
+/* 02. 暗いテーマの共通色：HTMLのdata-theme="dark"時に上書き */
 [data-theme="dark"] {
     --bg-color: #202124;
     --text-color: #e8eaed;
@@ -33,6 +42,7 @@
     --logo-g: #81c995;
 }
 
+/* 03. ページ全体：中央寄せ・フォント・背景・左右の余白 */
 body {
     margin: 0;
     padding: 0;
@@ -50,7 +60,9 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* ===== �c�[���o�[ ===== */
+/* ========================================================================
+   04. 上部メニュー：翻訳欄・管理ボタン・Steam・テーマ変更
+   ======================================================================== */
 .favorites-bar {
     position: fixed;
     top: 0;
@@ -68,6 +80,7 @@ body {
     flex-wrap: wrap;
 }
 
+/* 04-1. Google翻訳入力欄の外枠 */
 .translate-box {
     display: flex;
     align-items: center;
@@ -98,6 +111,7 @@ body {
         color: var(--icon-color);
     }
 
+/* 04-2. 上部に並ぶボタンの共通デザイン */
 .action-btn {
     background: transparent;
     border: none;
@@ -114,6 +128,24 @@ body {
         background-color: var(--hover-bg);
     }
 
+/* 04-3. Steamリンクを通常のボタンと同じ外観にする */
+.steam-launch-btn {
+    color: var(--text-color);
+}
+.right-tools .action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.right-tools .action-btn:focus-visible {
+    outline: 2px solid var(--logo-b);
+    outline-offset: 2px;
+}
+
+/* 04-4. 右寄せの操作群：Steam／保存／読込／追加／テーマ変更 */
 .right-tools {
     margin-left: auto;
     display: flex;
@@ -121,6 +153,7 @@ body {
     gap: 5px;
 }
 
+/* 04-5. テーマ切り替えボタン */
 .theme-btn {
     background: transparent;
     border: none;
@@ -136,7 +169,9 @@ body {
         background-color: var(--hover-bg);
     }
 
-/* ===== �����̃����`���[ ===== */
+/* ========================================================================
+   05. 左ランチャー：HTMLファイル・URLフォルダーの表示
+   ======================================================================== */
 .left-launcher {
     position: fixed;
     top: 60px;
@@ -160,6 +195,7 @@ body {
         box-shadow: 4px 4px 16px var(--shadow-color);
     }
 
+/* 05-1. フォルダーを横方向に並べ、はみ出した分はスクロールする */
 .launcher-content {
     display: flex;
     flex-direction: row;
@@ -177,6 +213,7 @@ body {
         border-radius: 4px;
     }
 
+/* 05-2. フォルダー1列の幅と、マウスを乗せたときの展開幅 */
 .folder-col {
     width: 60px;
     min-width: 60px;
@@ -208,6 +245,7 @@ body {
         border-radius: 3px;
     }
 
+/* 05-3. フォルダー見出しの文字と枠 */
 .folder-title {
     padding: 0 10px 10px 10px;
     font-size: 13px;
@@ -219,7 +257,7 @@ body {
     word-break: break-word;
 }
 
-/* �t�H���_���ƃs�����߃{�^���̃��C�A�E�g */
+/* フォルダ名とピン留めボタンのレイアウト */
 .folder-title-inner {
     display: flex;
     justify-content: center;
@@ -244,7 +282,7 @@ body {
     display: inline;
 }
 
-/* ===== �t�H���_�[�̌Œ�i�s�����߁j�p�X�^�C�� ===== */
+/* 05-4. フォルダーのピン固定：展開状態を維持する */
 .folder-col.pinned {
     width: auto;
     min-width: 220px;
@@ -264,6 +302,7 @@ body {
             display: inline-block;
         }
 
+/* 05-5. フォルダー固定ボタンの見た目 */
 .pin-btn {
     background: transparent;
     border: none;
@@ -284,6 +323,7 @@ body {
     display: inline-block;
 }
 
+/* 05-6. 左ランチャーの各リンク・HTMLファイルのボタン */
 .dock-btn {
     display: flex;
     align-items: center;
@@ -338,7 +378,9 @@ body {
     display: inline-block;
 }
 
-/* ===== �E���̃T�C�h�o�[ ===== */
+/* ========================================================================
+   06. 右ショートカット：登録リンク・Steamゲーム・並べ替え・削除
+   ======================================================================== */
 .sidebar {
     position: fixed;
     top: 60px;
@@ -374,12 +416,14 @@ body {
         border-radius: 4px;
     }
 
+/* 06-1. リンク一覧を縦方向に配置 */
 .shortcuts-container {
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
+/* 06-2. ショートカット1件分の表示・背景 */
 .shortcut {
     position: relative;
     display: flex;
@@ -406,6 +450,7 @@ body {
         background-color: var(--hover-bg);
     }
 
+/* 06-3. ショートカットのWebアイコン・Steam絵文字 */
 .shortcut-icon {
     width: 60px;
     height: 44px;
@@ -433,7 +478,7 @@ body {
     display: inline;
 }
 
-/* ����{�^���Q�i�� �� �~�j */
+/* 06-4. 上下移動・削除ボタン：リンク上にマウスを乗せたとき表示 */
 .shortcut-controls {
     position: absolute;
     right: 10px;
@@ -485,7 +530,9 @@ body {
         pointer-events: none;
     }
 
-/* ===== �������� ===== */
+/* ========================================================================
+   07. 中央検索：タイトル・検索欄・検索実行ボタン
+   ======================================================================== */
 .container {
     text-align: center;
     width: 100%;
@@ -493,6 +540,7 @@ body {
     margin-top: -10vh;
 }
 
+/* 07-1. 中央の「タイトルロゴ」ロゴ */
 .logo {
     font-size: 80px;
     margin-bottom: 25px;
@@ -513,6 +561,7 @@ body {
         color: var(--logo-g);
     }
 
+/* 07-2. 検索入力欄の外枠とマウス操作時の表示 */
 .search-box {
     display: flex;
     align-items: center;
@@ -550,6 +599,7 @@ body {
         color: var(--icon-color);
     }
 
+/* 07-3. 検索実行ボタン */
 .buttons button {
     background-color: var(--btn-bg);
     border: 1px solid var(--btn-bg);
@@ -568,3 +618,13 @@ body {
         color: var(--text-color);
     }
 
+
+/* ========================================================================
+   08. その他：HTML側の属性をCSSに移した補助スタイル
+   非表示inputやフォルダー復元ボタンに使う。
+   ======================================================================== */
+.folder-select-action { color: #34a853; }
+.folder-restore-action { color: #fbbc05; }
+.danger-action { color: var(--logo-r); }
+[hidden] { display: none !important; }
+.translate-symbol { font-size: 14px; }
