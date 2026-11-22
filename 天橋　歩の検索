@@ -1,21 +1,98 @@
 
 <!DOCTYPE html>
 <html lang="ja">
-
+<!--
+    【ファイル概要：amahtml.html】
+    ページの表示場所（上部メニュー／左ランチャー／中央検索／右ショートカット）を定義します。
+    画面デザインは amaken.css、クリック操作・保存処理は amasuku.js が担当します。
+    各要素の id は JavaScript から参照されるため、変更する場合は JS 側も確認してください。
+-->
 <head>
+    <!-- 01. ページ設定：文字コード・表示幅・ページ名 -->
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ページタイトル</title>
+    <title>天橋　歩の検索</title>
 
-    <!-- CSSファイルを読み込む -->
-    <link rel="stylesheet" href="./style.css">
-
-    <!-- JavaScriptファイルを読み込む -->
-    <script src="./script.js" defer></script>
-</head>
-
-<body>
    
-</body>
 
+    <!-- 02. JavaScript読込：defer によりHTML解析後に実行 -->
+    <script src="./amasuku.js" defer></script>
+
+    <!-- 03. CSS読込：テーマ・配置・ボタンなどを定義 -->
+    <link rel="stylesheet" href="./amaken.css">
+</head>
+<body>
+<!-- ============================================================
+     04. 上部メニュー：翻訳・フォルダー管理・Steam・保存／読込・テーマ変更
+     ============================================================ -->
+<header class="favorites-bar">
+    <!-- 04-1. 翻訳フォーム：送信時に JS がGoogle翻訳を開く -->
+    <form id="translate-form" class="translate-box">
+        <span class="translate-symbol">🌐</span>
+        <input type="text" name="text" class="translate-input" placeholder="Google翻訳..." required>
+    </form>
+
+    <!-- 04-2. HTMLフォルダーの選択と権限の復元 -->
+    <button class="action-btn folder-select-action" id="select-html-folder-btn">📁 HTMLフォルダーを選択</button>
+    <button id="restore-folder-btn" class="action-btn folder-restore-action" hidden>🔄 フォルダを許可して復元</button>
+
+    <!-- 04-3. .url / .webloc ファイルをフォルダー単位で読み込み -->
+    <!-- 非表示inputは「URLを追加」ボタンから開く -->
+    <input type="file" id="url-folder-input" webkitdirectory directory hidden>
+    <button class="action-btn" id="add-url-btn">📁 URLを追加</button>
+
+    <!-- 04-4. 左ランチャーの登録情報をリセット（右ショートカットは別管理） -->
+    <button class="action-btn danger-action" id="clear-favorites-btn">🗑 リセット</button>
+
+    <!-- 04-5. 右側の操作エリア -->
+    <div class="right-tools">
+       
+        <!-- 右ショートカット一覧のJSON書き出し・読み込み・追加 -->
+        <button class="action-btn" id="save-shortcuts-btn">💾 保存</button>
+        <input type="file" id="import-shortcuts-input" accept=".json" hidden>
+        <button class="action-btn" id="load-shortcuts-btn">📂 読込</button>
+        <button class="action-btn" id="add-shortcut-btn">＋ 追加</button>
+        <!-- 明るい/暗いテーマの切り替え -->
+        <button class="theme-btn" id="theme-toggle" title="テーマ切り替え">🌙</button>
+    </div>
+</header>
+
+
+<!-- ============================================================
+     05. 左ランチャー：HTMLファイル・URLフォルダーの一覧
+     #launcher-content の中身は JavaScript が生成します。
+     ============================================================ -->
+<aside class="left-launcher">
+    <div class="launcher-content" id="launcher-content"></div>
+</aside>
+
+<!-- ============================================================
+     06. 中央検索：キーワードを入力してGoogle検索を実行
+     ============================================================ -->
+<main class="container">
+    <!-- 検索ページのタイトル -->
+    <h1 class="logo">
+        <span class="red">天橋　歩検索</span>
+    </h1>
+    <!-- 送信時に JS がGoogle検索URLを組み立てます -->
+    <form id="search-form">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="q" class="search-input" placeholder="天橋　歩の検索" required autocomplete="off" autofocus>
+        </div>
+        <div class="buttons">
+            <button type="submit">天橋　歩の検索</button>
+        </div>
+    </form>
+</main>
+
+<!-- ============================================================
+     07. 右ショートカット：任意URL／Steamゲームを登録・並び替え・削除
+     #shortcut-list の中身は JavaScript が生成します。
+     ============================================================ -->
+<aside class="sidebar">
+    <div class="shortcuts-container" id="shortcut-list"></div>
+</aside>
+</body>
 </html>
