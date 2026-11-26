@@ -17,6 +17,8 @@
         .btn:hover { background: #0056b3; }
         .btn-success { background: #28a745; }
         .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
         
         .controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; }
         .json-section { border-left: 2px solid #ccc; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; }
@@ -42,6 +44,7 @@
         .modal-content { background-color: #fefefe; margin: 4% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 800px; border-radius: 8px; max-height: 85vh; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
         .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; }
         .close-btn:hover, .close-btn:focus { color: #333; text-decoration: none; }
+        .modal-footer { margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; }
 
         /* =========================================
            小窓（報告書作成ツール）のスタイル
@@ -75,7 +78,7 @@
         .person-header { background-color: #e8f5e9; margin: -20px -20px 20px -20px; padding: 12px 20px; border-radius: 6px 6px 0 0; border-bottom: 1px solid #81c784; display: flex; justify-content: space-between; align-items: center; }
         .person-header h3 { margin: 0; color: #2e7d32; font-size: 18px; }
         
-        .remove-btn { background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .remove-btn { background-color: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; }
         .remove-btn:hover { background-color: #d32f2f; }
         .add-person-btn { background-color: #ff9800; color: white; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; transition: background-color 0.2s; }
         .add-person-btn:hover { background-color: #f57c00; }
@@ -130,6 +133,10 @@
                         <label style="font-size: 13px; font-weight:bold; color: #5cb85c;">▼ 現在のデータを保存</label>
                         <button class="btn btn-success" onclick="exportJSON()">💾 JSONファイルとしてダウンロード</button>
                     </div>
+                    <div class="json-section">
+                        <label style="font-size: 13px; font-weight:bold; color: #dc3545;">▼ 掲示板データを削除</label>
+                        <button class="btn btn-danger" onclick="clearAllPosts()">🗑️ すべて削除</button>
+                    </div>
                 </div>
                 <div id="postList" class="post-list"></div>
 
@@ -181,15 +188,56 @@
 
                 return `
                     <div class="post-item list-view-item person-card" style="padding: 15px; margin-bottom: 10px;" onclick="openModal(${originalIndex})">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 class="list-title">${title}</h3>
-                            <span style="font-size:14px; color:#555; font-weight:bold;">${timeStr}</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap: 10px;">
+                            <h3 class="list-title" style="flex: 1;">${title}</h3>
+                            <div style="display:flex; align-items:center; gap: 12px;">
+                                <span style="font-size:14px; color:#555; font-weight:bold;">${timeStr}</span>
+                                <button class="remove-btn" onclick="deletePost(${originalIndex}, event)">削除</button>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
             
             postList.innerHTML = html;
+        }
+
+        // 投稿を1件削除する関数
+        function deletePost(index, event) {
+            if (event) {
+                event.stopPropagation(); // 一覧クリック時のモーダル表示を防ぐ
+            }
+            const posts = getPosts();
+            const target = posts[index];
+            if (!target) return;
+
+            if (!confirm(`「${target.name}」の投稿を削除してもよろしいですか？`)) {
+                return;
+            }
+
+            posts.splice(index, 1);
+            savePosts(posts);
+            updatePostList();
+
+            // モーダルが開いていた場合は閉じる
+            const modal = document.getElementById('postModal');
+            if (modal && modal.style.display === 'block') {
+                closeModal();
+            }
+        }
+
+        // 掲示板のすべての投稿を削除する関数
+        function clearAllPosts() {
+            const posts = getPosts();
+            if (posts.length === 0) {
+                alert('削除するデータがありません。');
+                return;
+            }
+            if (!confirm(`掲示板のすべての投稿（${posts.length}件）を削除してもよろしいですか？\n※この操作は取り消せません。`)) {
+                return;
+            }
+            savePosts([]);
+            updatePostList();
         }
 
         // 該当の投稿をモーダルで開く関数
@@ -239,6 +287,9 @@
                             ${summaryHtml}
                             ${fieldsHtml}
                         </div>
+                        <div class="modal-footer">
+                            <button class="remove-btn" onclick="deletePost(${index})">🗑️ この投稿を削除</button>
+                        </div>
                     </div>
                 `;
             } else {
@@ -249,6 +300,9 @@
                             名前: <strong>${escapeHTML(post.name)}</strong>  |  日時: ${post.timestamp}
                         </div>
                         <div class="post-body">${escapeHTML(post.message)}</div>
+                        <div class="modal-footer">
+                            <button class="remove-btn" onclick="deletePost(${index})">🗑️ この投稿を削除</button>
+                        </div>
                     </div>
                 `;
             }
