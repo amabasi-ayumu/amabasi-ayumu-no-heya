@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>リタリコズームボタン管理</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 24px;
+    background-color: #0d1117;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 8px 0;
+  }
+  .subtitle {
+    color: #b0b8c4;
+    font-size: 14px;
+    margin: 0 0 20px 0;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .btn {
+    padding: 9px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s, background-color 0.2s;
+    color: #ffffff;
+  }
+  .btn:hover {
+    opacity: 0.9;
+  }
+  .btn-primary {
+    background-color: #007bff;
+  }
+  .btn-success {
+    background-color: #28a745;
+  }
+  .btn-info {
+    background-color: #17a2b8;
+  }
+  .btn-danger {
+    background-color: #dc3545;
+  }
+  .btn-secondary {
+    background-color: #495057;
+  }
+  .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    word-break: break-all;
+  }
+  .card-url {
+    font-size: 12px;
+    color: #8b949e;
+    word-break: break-all;
+    background-color: #0d1117;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #21262d;
+    margin: 0;
+  }
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .copy-btn {
+    padding: 9px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    flex: 1 1 100%;
+  }
+  .copy-btn:hover {
+    background-color: #0056b3;
+  }
+  .copy-btn.copied {
+    background-color: #28a745;
+  }
+  .empty-state {
+    background-color: #161b22;
+    border: 1px dashed #30363d;
+    border-radius: 8px;
+    padding: 32px;
+    text-align: center;
+    color: #8b949e;
+  }
+  .haikei-desu {
+    background-color: #808080;
+  }
+  .font-desu {
+    color: #ffffff;
+  }
+</style>
+</head>
+<body>
+
+  <h1>リタリコズームボタン</h1>
+  <p class="subtitle">ボタンを押すとZoomのURLをコピーします。別窓からボタンの作成・削除や、CSV・JSONでの一括追加ができます。</p>
+
+  <div class="toolbar">
+    <button type="button" class="btn btn-primary" onclick="openCreateWindow()">＋ 新規作成（別窓）</button>
+    <button type="button" class="btn btn-danger" onclick="openDeleteWindow()">－ 削除管理（別窓）</button>
+    <button type="button" class="btn btn-success" onclick="openImportWindow('csv')">CSVで追加（別窓）</button>
+    <button type="button" class="btn btn-info" onclick="openImportWindow('json')">JSONで追加（別窓）</button>
+    <button type="button" class="btn btn-secondary" onclick="resetDefaultItems()">初期データに戻す</button>
+  </div>
+
+  <div id="buttonContainer" class="button-grid"></div>
+
+  <script>
+    const STORAGE_KEY = 'litalico_zoom_buttons_v1';
+    const DEFAULT_ITEMS = [
+      {
+        id: 'default-1',
+        label: 'URLをコピーする',
+        url: 'https://litalico.zoom.us/j/91328460305?pwd=VVZ2M3VEdWYvd3BWTGxSOXN6eWN2QT09'
+      }
+    ];
+
+    let items = loadItems();
+
+    function loadItems() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          return DEFAULT_ITEMS.map(item => ({ ...item }));
+        }
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+          return DEFAULT_ITEMS.map(item => ({ ...item }));
+        }
+        return parsed
+          .filter(item => item && typeof item.url === 'string' && item.url.trim() !== '')
+          .map((item, index) => ({
+            id: String(item.id || ('item-' + Date.now() + '-' + index)),
+            label: (typeof item.label === 'string' && item.label.trim() !== '')
+              ? item.label.trim()
+              : 'URLをコピーする',
+            url: item.url.trim()
+          }));
+      } catch (e) {
+        console.error('データの読み込みに失敗しました:', e);
+        return DEFAULT_ITEMS.map(item => ({ ...item }));
+      }
+    }
+
+    function saveItems() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      } catch (e) {
+        console.error('データの保存に失敗しました:', e);
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderButtons() {
+      const container = document.getElementById('buttonContainer');
+      if (!items.length) {
+        container.innerHTML = '<div class="empty-state">表示するZoomボタンがありません。「＋ 新規作成（別窓）」または「CSV / JSONで追加（別窓）」から追加してください。</div>';
+        return;
+      }
+
+      container.innerHTML = items.map((item) => {
+        const safeId = escapeHtml(item.id);
+        const safeLabel = escapeHtml(item.label);
+        const safeUrl = escapeHtml(item.url);
+        return `
+          <div class="card">
+            <div>
+              <div class="card-title">${safeLabel}</div>
+              <p class="card-url">${safeUrl}</p>
+            </div>
+            <div class="card-actions">
+              <button type="button" class="copy-btn" id="copyBtn-${safeId}" onclick="copyUrlById('${safeId}')">${safeLabel}</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="deleteItemById('${safeId}')">削除</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).catch(() => fallbackCopyText(text));
+      }
+      return Promise.resolve(fallbackCopyText(text));
+    }
+
+    function fallbackCopyText(text) {
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = text;
+      tempTextArea.style.position = 'fixed';
+      tempTextArea.style.left = '-9999px';
+      document.body.appendChild(tempTextArea);
+
+      tempTextArea.select();
+      tempTextArea.setSelectionRange(0, 99999);
+
+      try {
+        const ok = document.execCommand('copy');
+        if (!ok) {
+          throw new Error('execCommand returned false');
+        }
+        return true;
+      } finally {
+        document.body.removeChild(tempTextArea);
+      }
+    }
+
+    function copyUrlById(id) {
+      const target = items.find(item => item.id === id);
+      if (!target) return;
+
+      const button = document.getElementById('copyBtn-' + id);
+      const originalText = target.label;
+
+      copyTextToClipboard(target.url)
+        .then(() => {
+          if (button) {
+            button.textContent = 'コピーしました！';
+            button.classList.add('copied');
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.classList.remove('copied');
+            }, 2000);
+          }
+        })
+        .catch((err) => {
+          console.error('コピーに失敗しました:', err);
+          alert('コピーに失敗しました。');
+        });
+    }
+
+    // 外部（別窓）から呼び出されるAPI
+    window.zoomManagerApi = {
+      getItems: function() {
+        return items.map(item => ({ ...item }));
+      },
+      addItem: function(label, url) {
+        const cleanUrl = String(url || '').trim();
+        if (!cleanUrl) {
+          return { ok: false, message: 'URLを入力してください。' };
+        }
+        const cleanLabel = String(label || '').trim() || 'URLをコピーする';
+        const newItem = {
+          id: 'item-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+          label: cleanLabel,
+          url: cleanUrl
+        };
+        items.push(newItem);
+        saveItems();
+        renderButtons();
+        return { ok: true, item: newItem };
+      },
+      deleteItemsByIds: function(ids) {
+        if (!Array.isArray(ids) || !ids.length) {
+          return { ok: false, deletedCount: 0 };
+        }
+        const idSet = new Set(ids);
+        const beforeCount = items.length;
+        items = items.filter(item => !idSet.has(item.id));
+        const deletedCount = beforeCount - items.length;
+        saveItems();
+        renderButtons();
+        return { ok: true, deletedCount };
+      },
+      bulkAddItems: function(newEntries) {
+        if (!Array.isArray(newEntries) || !newEntries.length) {
+          return { ok: false, addedCount: 0, message: '追加可能なデータが見つかりませんでした。' };
+        }
+        let addedCount = 0;
+        newEntries.forEach((entry, idx) => {
+          const cleanUrl = String(entry.url || '').trim();
+          if (!cleanUrl) return;
+          const cleanLabel = String(entry.label || '').trim() || 'URLをコピーする';
+          items.push({
+            id: 'item-' + Date.now() + '-' + idx + '-' + Math.random().toString(36).slice(2, 6),
+            label: cleanLabel,
+            url: cleanUrl
+          });
+          addedCount++;
+        });
+        if (addedCount > 0) {
+          saveItems();
+          renderButtons();
+        }
+        return {
+          ok: addedCount > 0,
+          addedCount,
+          message: addedCount > 0 ? `${addedCount}件のボタンを追加しました。` : '有効なURLが含まれていません。'
+        };
+      }
+    };
+
+    function deleteItemById(id) {
+      const target = items.find(item => item.id === id);
+      if (!target) return;
+      if (confirm(`「${target.label}」を削除しますか？`)) {
+        window.zoomManagerApi.deleteItemsByIds([id]);
+      }
+    }
+
+    function resetDefaultItems() {
+      if (confirm('初期データ（1件）にリセットしますか？')) {
+        items = DEFAULT_ITEMS.map(item => ({ ...item }));
+        saveItems();
+        renderButtons();
+      }
+    }
+
+    function openPopupWindow(windowName, width, height, htmlContent) {
+      const popup = window.open('', windowName, `width=${width},height=${height},resizable=yes,scrollbars=yes`);
+      if (!popup) {
+        alert('別窓（ポップアップ）がブロックされました。ブラウザのポップアップブロックを許可してください。');
+        return null;
+      }
+      popup.document.open();
+      popup.document.write(htmlContent);
+      popup.document.close();
+      popup.focus();
+      return popup;
+    }
+
+    function openCreateWindow() {
+      const content = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Zoomボタンの新規作成</title>
+<style>
+  body { font-family: sans-serif; background: #161b22; color: #fff; padding: 20px; margin: 0; }
+  h2 { margin-top: 0; font-size: 18px; }
+  label { display: block; margin-top: 12px; font-size: 13px; color: #c9d1d9; }
+  input[type="text"] {
+    width: 100%; box-sizing: border-box; padding: 9px 10px; margin-top: 6px;
+    border-radius: 5px; border: 1px solid #30363d; background: #0d1117; color: #fff; font-size: 14px;
+  }
+  .actions { margin-top: 18px; display: flex; gap: 10px; }
+  button {
+    padding: 9px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #fff;
+  }
+  .save { background: #007bff; }
+  .cancel { background: #495057; }
+  .msg { margin-top: 12px; font-size: 13px; color: #ff7b72; }
+</style>
+</head>
+<body>
+  <h2>Zoomボタンの新規作成</h2>
+  <form id="createForm">
+    <label for="btnLabel">ボタン名（省略時は「URLをコピーする」）</label>
+    <input type="text" id="btnLabel" placeholder="例: 定例ミーティング">
+
+    <label for="btnUrl">Zoom URL（必須）</label>
+    <input type="text" id="btnUrl" placeholder="https://litalico.zoom.us/j/..." required>
+
+    <div class="actions">
+      <button type="submit" class="save">作成する</button>
+      <button type="button" class="cancel" onclick="window.close()">閉じる</button>
+    </div>
+    <div id="msg" class="msg"></div>
+  </form>
+  <script>
+    document.getElementById('createForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const label = document.getElementById('btnLabel').value;
+      const url = document.getElementById('btnUrl').value;
+      const openerApi = window.opener && window.opener.zoomManagerApi;
+      if (!openerApi) {
+        document.getElementById('msg').textContent = '親ウィンドウとの接続が見つかりません。';
+        return;
+      }
+      const res = openerApi.addItem(label, url);
+      if (!res.ok) {
+        document.getElementById('msg').textContent = res.message || '作成に失敗しました。';
+        return;
+      }
+      window.close();
+    });
+  <\/script>
+</body>
+</html>`;
+      openPopupWindow('zoomCreateWindow', 440, 320, content);
+    }
+
+    function openDeleteWindow() {
+      const content = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Zoomボタンの削除</title>
+<style>
+  body { font-family: sans-serif; background: #161b22; color: #fff; padding: 20px; margin: 0; }
+  h2 { margin-top: 0; font-size: 18px; }
+  .list { max-height: 280px; overflow-y: auto; border: 1px solid #30363d; border-radius: 6px; padding: 10px; background: #0d1117; }
+  .row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 4px; border-bottom: 1px solid #21262d; }
+  .row:last-child { border-bottom: none; }
+  .row-label { font-weight: bold; font-size: 14px; }
+  .row-url { font-size: 12px; color: #8b949e; word-break: break-all; }
+  .actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; }
+  button { padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #fff; }
+  .del { background: #dc3545; }
+  .sub { background: #495057; }
+  .msg { margin-top: 10px; font-size: 13px; color: #ffa657; }
+</style>
+</head>
+<body>
+  <h2>削除するZoomボタンを選択</h2>
+  <div id="listArea" class="list"></div>
+  <div class="actions">
+    <button type="button" class="sub" onclick="toggleAll(true)">全選択</button>
+    <button type="button" class="sub" onclick="toggleAll(false)">全解除</button>
+    <button type="button" class="del" onclick="deleteSelected()">選択項目を削除</button>
+    <button type="button" class="sub" onclick="window.close()">閉じる</button>
+  </div>
+  <div id="msg" class="msg"></div>
+  <script>
+    function escapeText(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function renderList() {
+      const area = document.getElementById('listArea');
+      const openerApi = window.opener && window.opener.zoomManagerApi;
+      if (!openerApi) {
+        area.innerHTML = '親ウィンドウが見つかりません。';
+        return;
+      }
+      const current = openerApi.getItems();
+      if (!current.length) {
+        area.innerHTML = '削除できる項目がありません。';
+        return;
+      }
+      area.innerHTML = current.map(item => \`
+        <label class="row">
+          <input type="checkbox" class="del-check" value="\${escapeText(item.id)}">
+          <div>
+            <div class="row-label">\${escapeText(item.label)}</div>
+            <div class="row-url">\${escapeText(item.url)}</div>
+          </div>
+        </label>
+      \`).join('');
+    }
+    function toggleAll(checked) {
+      document.querySelectorAll('.del-check').forEach(cb => { cb.checked = checked; });
+    }
+    function deleteSelected() {
+      const checkedIds = Array.from(document.querySelectorAll('.del-check:checked')).map(cb => cb.value);
+      const msg = document.getElementById('msg');
+      if (!checkedIds.length) {
+        msg.textContent = '削除する項目にチェックを入れてください。';
+        return;
+      }
+      const openerApi = window.opener && window.opener.zoomManagerApi;
+      if (!openerApi) {
+        msg.textContent = '親ウィンドウとの接続が見つかりません。';
+        return;
+      }
+      const res = openerApi.deleteItemsByIds(checkedIds);
+      msg.textContent = (res.deletedCount || 0) + '件を削除しました。';
+      renderList();
+    }
+    renderList();
+  <\/script>
+</body>
+</html>`;
+      openPopupWindow('zoomDeleteWindow', 520, 440, content);
+    }
+
+    function openImportWindow(initialFormat) {
+      const mode = initialFormat === 'json' ? 'json' : 'csv';
+      const content = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>CSV / JSON でZoomボタンを追加</title>
+<style>
+  body { font-family: sans-serif; background: #161b22; color: #fff; padding: 20px; margin: 0; }
+  h2 { margin-top: 0; font-size: 18px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tab { padding: 7px 14px; border: 1px solid #30363d; background: #0d1117; color: #c9d1d9; border-radius: 5px; cursor: pointer; font-weight: bold; }
+  .tab.active { background: #007bff; color: #fff; border-color: #007bff; }
+  .hint { font-size: 12px; color: #8b949e; margin-bottom: 8px; line-height: 1.5; }
+  textarea {
+    width: 100%; height: 180px; box-sizing: border-box; padding: 10px;
+    border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff;
+    font-family: monospace; font-size: 13px;
+  }
+  .file-row { margin-top: 10px; font-size: 13px; color: #c9d1d9; }
+  .actions { margin-top: 16px; display: flex; gap: 10px; }
+  button.action { padding: 9px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: #fff; }
+  .add { background: #28a745; }
+  .close { background: #495057; }
+  .msg { margin-top: 12px; font-size: 13px; color: #7ee787; white-space: pre-wrap; }
+  .err { color: #ff7b72; }
+</style>
+</head>
+<body>
+  <h2>CSV / JSON でボタンを追加</h2>
+  <div class="tabs">
+    <button type="button" id="tab-csv" class="tab" onclick="switchMode('csv')">CSV形式</button>
+    <button type="button" id="tab-json" class="tab" onclick="switchMode('json')">JSON形式</button>
+  </div>
+
+  <div id="hintText" class="hint"></div>
+  <textarea id="dataInput"></textarea>
+
+  <div class="file-row">
+    <label>ファイルから読み込み: <input type="file" id="fileInput" accept=".csv,.json,.txt"></label>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="action add" onclick="importData()">追加する</button>
+    <button type="button" class="action close" onclick="window.close()">閉じる</button>
+  </div>
+  <div id="msg" class="msg"></div>
+
+  <script>
+    let currentMode = '${mode}';
+
+    const samples = {
+      csv: 'ボタン名,URL\n月曜ミーティング,https://litalico.zoom.us/j/11111111111?pwd=xxxx\n金曜ミーティング,https://litalico.zoom.us/j/22222222222?pwd=yyyy',
+      json: JSON.stringify([
+        { "label": "月曜ミーティング", "url": "https://litalico.zoom.us/j/11111111111?pwd=xxxx" },
+        { "label": "金曜ミーティング", "url": "https://litalico.zoom.us/j/22222222222?pwd=yyyy" }
+      ], null, 2)
+    };
+
+    const hints = {
+      csv: 'CSV形式: 「ボタン名,URL」の形式で入力してください（ヘッダー行「ボタン名,URL」や「label,url」は自動スキップされます。URLのみの行も追加可能です）。',
+      json: 'JSON形式: [{"label":"ボタン名","url":"https://..."}] の配列、または {"items":[...]} 形式で入力してください。'
+    };
+
+    function switchMode(newMode) {
+      currentMode = newMode;
+      document.getElementById('tab-csv').classList.toggle('active', newMode === 'csv');
+      document.getElementById('tab-json').classList.toggle('active', newMode === 'json');
+      document.getElementById('hintText').textContent = hints[newMode];
+      const textarea = document.getElementById('dataInput');
+      if (!textarea.value.trim()) {
+        textarea.value = samples[newMode];
+      }
+    }
+
+    function parseCsvLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else if (ch === '"') {
+            inQuotes = false;
+          } else {
+            current += ch;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+          } else if (ch === ',') {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function parseCsv(text) {
+      const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+      const entries = [];
+      lines.forEach((rawLine, index) => {
+        const line = rawLine.trim();
+        if (!line) return;
+        const cols = parseCsvLine(line);
+        if (index === 0) {
+          const c0 = (cols[0] || '').toLowerCase();
+          const c1 = (cols[1] || '').toLowerCase();
+          if ((c0 === 'ボタン名' || c0 === 'label' || c0 === 'name' || c0 === 'title') &&
+              (c1 === 'url' || c1 === 'link' || c1 === 'zoom_url')) {
+            return;
+          }
+        }
+        if (cols.length >= 2) {
+          entries.push({ label: cols[0], url: cols.slice(1).join(',') });
+        } else if (cols.length === 1 && /^https?:\/\//i.test(cols[0])) {
+          entries.push({ label: 'URLをコピーする', url: cols[0] });
+        }
+      });
+      return entries;
+    }
+
+    function parseJson(text) {
+      const parsed = JSON.parse(text);
+      const list = Array.isArray(parsed)
+        ? parsed
+        : (parsed && Array.isArray(parsed.items) ? parsed.items : null);
+      if (!list) {
+        throw new Error('JSONは配列 [...] または {"items": [...]} 形式で指定してください。');
+      }
+      return list.map(item => ({
+        label: item.label || item.name || item.title || 'URLをコピーする',
+        url: item.url || item.link || item.zoom_url || ''
+      }));
+    }
+
+    function importData() {
+      const msgEl = document.getElementById('msg');
+      msgEl.className = 'msg';
+      const raw = document.getElementById('dataInput').value.trim();
+      if (!raw) {
+        msgEl.classList.add('err');
+        msgEl.textContent = 'データを入力するか、ファイルを選択してください。';
+        return;
+      }
+
+      const openerApi = window.opener && window.opener.zoomManagerApi;
+      if (!openerApi) {
+        msgEl.classList.add('err');
+        msgEl.textContent = '親ウィンドウとの接続が見つかりません。';
+        return;
+      }
+
+      try {
+        let entries = [];
+        if (currentMode === 'csv') {
+          entries = parseCsv(raw);
+        } else {
+          entries = parseJson(raw);
+        }
+        const res = openerApi.bulkAddItems(entries);
+        if (!res.ok) {
+          msgEl.classList.add('err');
+          msgEl.textContent = res.message || '追加に失敗しました。';
+          return;
+        }
+        msgEl.textContent = res.message + ' 画面に反映されました。';
+      } catch (err) {
+        msgEl.classList.add('err');
+        msgEl.textContent = '解析エラー: ' + err.message;
+      }
+    }
+
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const lowerName = file.name.toLowerCase();
+      if (lowerName.endsWith('.json')) {
+        switchMode('json');
+      } else if (lowerName.endsWith('.csv')) {
+        switchMode('csv');
+      }
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('dataInput').value = ev.target.result || '';
+      };
+      reader.readAsText(file, 'UTF-8');
+    });
+
+    switchMode(currentMode);
+    document.getElementById('dataInput').value = samples[currentMode];
+  <\/script>
+</body>
+</html>`;
+      openPopupWindow('zoomImportWindow', 560, 480, content);
+    }
+
+    renderButtons();
+  </script>
+
+</body>
+</html>
